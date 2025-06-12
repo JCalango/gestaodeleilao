@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Home, 
   Car, 
@@ -8,7 +9,8 @@ import {
   Search, 
   Settings, 
   BarChart3, 
-  FileText 
+  FileText,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +20,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const location = useLocation();
+  const { profile } = useAuth();
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', href: '/' },
@@ -26,6 +29,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     { icon: Search, label: 'Buscar', href: '/search' },
     { icon: BarChart3, label: 'Relatórios', href: '/reports' },
     { icon: FileText, label: 'Documentos', href: '/documents' },
+    ...(profile?.role === 'admin' ? [
+      { icon: Users, label: 'Usuários', href: '/users' },
+    ] : []),
     { icon: Settings, label: 'Configurações', href: '/settings' },
   ];
 

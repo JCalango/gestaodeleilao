@@ -597,18 +597,52 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       damage_status: "SIM" | "NAO" | "NA"
       report_type: "monobloco" | "moto" | "chassi" | "onibus"
       severity_category: "M" | "G"
       sim_nao: "sim" | "nao"
+      user_role: "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -728,6 +762,7 @@ export const Constants = {
       report_type: ["monobloco", "moto", "chassi", "onibus"],
       severity_category: ["M", "G"],
       sim_nao: ["sim", "nao"],
+      user_role: ["admin", "member"],
     },
   },
 } as const
