@@ -1,72 +1,58 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Eye, Edit2, Trash2, Filter, Download } from 'lucide-react';
+import { Plus, Eye, Edit2, Trash2, Filter, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useInspections } from '@/contexts/InspectionContext';
+import { useVistorias } from '@/contexts/VistoriaContext';
 import { cn } from '@/lib/utils';
 
 const InspectionsList: React.FC = () => {
-  const { inspections, deleteInspection } = useInspections();
+  const { vistorias, isLoading, deleteVistoria } = useVistorias();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [stateFilter, setStateFilter] = useState('all');
 
-  const filteredInspections = inspections.filter(inspection => {
+  const filteredVistorias = vistorias.filter(vistoria => {
     const matchesSearch = searchQuery === '' || 
-      inspection.licensePlate.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inspection.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inspection.model.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inspection.owner.name.toLowerCase().includes(searchQuery.toLowerCase());
+      (vistoria.placa && vistoria.placa.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (vistoria.marca && vistoria.marca.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (vistoria.modelo && vistoria.modelo.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (vistoria.nome_proprietario && vistoria.nome_proprietario.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    const matchesStatus = statusFilter === 'all' || inspection.status === statusFilter;
-    const matchesState = stateFilter === 'all' || inspection.state === stateFilter;
+    const matchesState = stateFilter === 'all' || vistoria.uf === stateFilter;
     
-    return matchesSearch && matchesStatus && matchesState;
+    return matchesSearch && matchesState;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      case 'auctioned': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'pending': return 'Pendente';
-      case 'approved': return 'Aprovado';
-      case 'rejected': return 'Rejeitado';
-      case 'auctioned': return 'Leiloado';
-      default: return status;
-    }
-  };
-
   const handleDelete = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta inspeção?')) {
-      deleteInspection(id);
+    if (confirm('Tem certeza que deseja excluir esta vistoria?')) {
+      deleteVistoria(id);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Inspeções</h1>
-          <p className="text-slate-600 mt-2">Gerencie todas as inspeções de veículos</p>
+          <h1 className="text-3xl font-bold text-slate-900">Vistorias</h1>
+          <p className="text-slate-600 mt-2">Gerencie todas as vistorias de veículos</p>
         </div>
         
         <Link to="/inspections/new">
           <Button className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />
-            Nova Inspeção
+            Nova Vistoria
           </Button>
         </Link>
       </div>
@@ -83,19 +69,6 @@ const InspectionsList: React.FC = () => {
           </div>
           
           <div className="flex gap-3">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="pending">Pendente</SelectItem>
-                <SelectItem value="approved">Aprovado</SelectItem>
-                <SelectItem value="rejected">Rejeitado</SelectItem>
-                <SelectItem value="auctioned">Leiloado</SelectItem>
-              </SelectContent>
-            </Select>
-
             <Select value={stateFilter} onValueChange={setStateFilter}>
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Estado" />
@@ -106,6 +79,8 @@ const InspectionsList: React.FC = () => {
                 <SelectItem value="RJ">RJ</SelectItem>
                 <SelectItem value="MG">MG</SelectItem>
                 <SelectItem value="RS">RS</SelectItem>
+                <SelectItem value="PR">PR</SelectItem>
+                <SelectItem value="SC">SC</SelectItem>
               </SelectContent>
             </Select>
 
@@ -128,62 +103,55 @@ const InspectionsList: React.FC = () => {
                 <th className="text-left py-3 px-4 font-medium text-slate-700">Veículo</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-700">Proprietário</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-700">Localização</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-700">Data Inspeção</th>
-                <th className="text-left py-3 px-4 font-medium text-slate-700">Status</th>
+                <th className="text-left py-3 px-4 font-medium text-slate-700">Data Vistoria</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-700">Restrições</th>
                 <th className="text-right py-3 px-4 font-medium text-slate-700">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {filteredInspections.map((inspection) => (
-                <tr key={inspection.id} className="border-b border-slate-100 hover:bg-slate-50">
+              {filteredVistorias.map((vistoria) => (
+                <tr key={vistoria.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="py-4 px-4">
                     <div>
-                      <p className="font-medium text-slate-900">{inspection.licensePlate}</p>
+                      <p className="font-medium text-slate-900">{vistoria.placa || 'N/A'}</p>
                       <p className="text-sm text-slate-600">
-                        {inspection.brand} {inspection.model} {inspection.modelYear}
+                        {vistoria.marca} {vistoria.modelo} {vistoria.ano_modelo}
                       </p>
-                      <p className="text-xs text-slate-500">{inspection.color}</p>
+                      <p className="text-xs text-slate-500">{vistoria.cor}</p>
                     </div>
                   </td>
                   
                   <td className="py-4 px-4">
                     <div>
-                      <p className="font-medium text-slate-900">{inspection.owner.name}</p>
-                      <p className="text-sm text-slate-600">{inspection.owner.cpf}</p>
+                      <p className="font-medium text-slate-900">{vistoria.nome_proprietario || 'N/A'}</p>
+                      <p className="text-sm text-slate-600">{vistoria.cpf_cnpj_proprietario}</p>
                     </div>
                   </td>
                   
                   <td className="py-4 px-4">
-                    <p className="text-sm text-slate-900">{inspection.city}, {inspection.state}</p>
+                    <p className="text-sm text-slate-900">{vistoria.municipio}, {vistoria.uf}</p>
                   </td>
                   
                   <td className="py-4 px-4">
                     <p className="text-sm text-slate-900">
-                      {new Date(inspection.inspectionDate).toLocaleDateString('pt-BR')}
+                      {vistoria.data_inspecao ? new Date(vistoria.data_inspecao).toLocaleDateString('pt-BR') : 'N/A'}
                     </p>
                   </td>
                   
                   <td className="py-4 px-4">
-                    <Badge className={cn('text-xs', getStatusColor(inspection.status))}>
-                      {getStatusLabel(inspection.status)}
-                    </Badge>
-                  </td>
-                  
-                  <td className="py-4 px-4">
                     <div className="flex flex-col gap-1">
-                      {inspection.judicialRestrictions && (
+                      {vistoria.restricao_judicial && (
                         <Badge variant="destructive" className="text-xs">Judicial</Badge>
                       )}
-                      {inspection.administrativeRestrictions && (
+                      {vistoria.restricao_administrativa && (
                         <Badge variant="destructive" className="text-xs">Administrativa</Badge>
                       )}
-                      {inspection.stolenOrRobbed && (
+                      {vistoria.furto_roubo && (
                         <Badge variant="destructive" className="text-xs">Furto/Roubo</Badge>
                       )}
-                      {!inspection.judicialRestrictions && 
-                       !inspection.administrativeRestrictions && 
-                       !inspection.stolenOrRobbed && (
+                      {!vistoria.restricao_judicial && 
+                       !vistoria.restricao_administrativa && 
+                       !vistoria.furto_roubo && (
                         <span className="text-xs text-green-600">Sem restrições</span>
                       )}
                     </div>
@@ -191,21 +159,17 @@ const InspectionsList: React.FC = () => {
                   
                   <td className="py-4 px-4">
                     <div className="flex justify-end gap-2">
-                      <Link to={`/inspections/${inspection.id}`}>
-                        <Button variant="ghost" size="icon" className="w-8 h-8">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Link to={`/inspections/${inspection.id}/edit`}>
-                        <Button variant="ghost" size="icon" className="w-8 h-8">
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                      </Link>
+                      <Button variant="ghost" size="icon" className="w-8 h-8">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="w-8 h-8">
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
                       <Button 
                         variant="ghost" 
                         size="icon" 
                         className="w-8 h-8 text-red-600 hover:text-red-700"
-                        onClick={() => handleDelete(inspection.id)}
+                        onClick={() => handleDelete(vistoria.id)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -216,9 +180,17 @@ const InspectionsList: React.FC = () => {
             </tbody>
           </table>
           
-          {filteredInspections.length === 0 && (
+          {filteredVistorias.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-slate-500">Nenhuma inspeção encontrada.</p>
+              <p className="text-slate-500">Nenhuma vistoria encontrada.</p>
+              {vistorias.length === 0 && (
+                <Link to="/inspections/new" className="inline-block mt-4">
+                  <Button>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Cadastrar primeira vistoria
+                  </Button>
+                </Link>
+              )}
             </div>
           )}
         </div>

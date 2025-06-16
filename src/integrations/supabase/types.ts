@@ -624,6 +624,207 @@ export type Database = {
         }
         Relationships: []
       }
+      vistorias: {
+        Row: {
+          alienacao_fiduciaria: boolean | null
+          ano_fabricacao: number | null
+          ano_modelo: number | null
+          bairro_financeira: string | null
+          bairro_possuidor: string | null
+          bairro_proprietario: string | null
+          categoria: string | null
+          cep_financeira: string | null
+          cep_possuidor: string | null
+          cep_proprietario: string | null
+          cidade_financeira: string | null
+          cidade_possuidor: string | null
+          cidade_proprietario: string | null
+          cnpj_financeira: string | null
+          complemento_financeira: string | null
+          complemento_proprietario: string | null
+          condicao_chassi: string | null
+          condicao_motor: string | null
+          cor: string | null
+          cpf_cnpj_possuidor: string | null
+          cpf_cnpj_proprietario: string | null
+          created_at: string | null
+          created_by: string | null
+          dados_remocao: string | null
+          data_entrada_patio: string | null
+          data_inspecao: string | null
+          debito_patio: number | null
+          endereco_financeira: string | null
+          endereco_possuidor: string | null
+          endereco_proprietario: string | null
+          fotos_chassi: string[] | null
+          fotos_frente: string[] | null
+          fotos_lateral_direita: string[] | null
+          fotos_lateral_esquerda: string[] | null
+          fotos_motor: string[] | null
+          fotos_traseira: string[] | null
+          furto_roubo: boolean | null
+          id: string
+          informacoes_complementares_possuidor: string | null
+          informacoes_complementares_proprietario: string | null
+          infracoes_transito: string | null
+          ipva: string | null
+          licenciamento: string | null
+          marca: string | null
+          modelo: string | null
+          municipio: string | null
+          nome_financeira: string | null
+          nome_possuidor: string | null
+          nome_proprietario: string | null
+          numero_casa_proprietario: string | null
+          numero_chassi: string | null
+          numero_controle: string
+          numero_endereco_financeira: string | null
+          numero_motor: string | null
+          observacoes: string | null
+          placa: string | null
+          possui_comunicacao_venda: boolean | null
+          renavam: string | null
+          restricao_administrativa: boolean | null
+          restricao_judicial: boolean | null
+          tipo_combustivel: string | null
+          uf: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          alienacao_fiduciaria?: boolean | null
+          ano_fabricacao?: number | null
+          ano_modelo?: number | null
+          bairro_financeira?: string | null
+          bairro_possuidor?: string | null
+          bairro_proprietario?: string | null
+          categoria?: string | null
+          cep_financeira?: string | null
+          cep_possuidor?: string | null
+          cep_proprietario?: string | null
+          cidade_financeira?: string | null
+          cidade_possuidor?: string | null
+          cidade_proprietario?: string | null
+          cnpj_financeira?: string | null
+          complemento_financeira?: string | null
+          complemento_proprietario?: string | null
+          condicao_chassi?: string | null
+          condicao_motor?: string | null
+          cor?: string | null
+          cpf_cnpj_possuidor?: string | null
+          cpf_cnpj_proprietario?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          dados_remocao?: string | null
+          data_entrada_patio?: string | null
+          data_inspecao?: string | null
+          debito_patio?: number | null
+          endereco_financeira?: string | null
+          endereco_possuidor?: string | null
+          endereco_proprietario?: string | null
+          fotos_chassi?: string[] | null
+          fotos_frente?: string[] | null
+          fotos_lateral_direita?: string[] | null
+          fotos_lateral_esquerda?: string[] | null
+          fotos_motor?: string[] | null
+          fotos_traseira?: string[] | null
+          furto_roubo?: boolean | null
+          id?: string
+          informacoes_complementares_possuidor?: string | null
+          informacoes_complementares_proprietario?: string | null
+          infracoes_transito?: string | null
+          ipva?: string | null
+          licenciamento?: string | null
+          marca?: string | null
+          modelo?: string | null
+          municipio?: string | null
+          nome_financeira?: string | null
+          nome_possuidor?: string | null
+          nome_proprietario?: string | null
+          numero_casa_proprietario?: string | null
+          numero_chassi?: string | null
+          numero_controle: string
+          numero_endereco_financeira?: string | null
+          numero_motor?: string | null
+          observacoes?: string | null
+          placa?: string | null
+          possui_comunicacao_venda?: boolean | null
+          renavam?: string | null
+          restricao_administrativa?: boolean | null
+          restricao_judicial?: boolean | null
+          tipo_combustivel?: string | null
+          uf?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          alienacao_fiduciaria?: boolean | null
+          ano_fabricacao?: number | null
+          ano_modelo?: number | null
+          bairro_financeira?: string | null
+          bairro_possuidor?: string | null
+          bairro_proprietario?: string | null
+          categoria?: string | null
+          cep_financeira?: string | null
+          cep_possuidor?: string | null
+          cep_proprietario?: string | null
+          cidade_financeira?: string | null
+          cidade_possuidor?: string | null
+          cidade_proprietario?: string | null
+          cnpj_financeira?: string | null
+          complemento_financeira?: string | null
+          complemento_proprietario?: string | null
+          condicao_chassi?: string | null
+          condicao_motor?: string | null
+          cor?: string | null
+          cpf_cnpj_possuidor?: string | null
+          cpf_cnpj_proprietario?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          dados_remocao?: string | null
+          data_entrada_patio?: string | null
+          data_inspecao?: string | null
+          debito_patio?: number | null
+          endereco_financeira?: string | null
+          endereco_possuidor?: string | null
+          endereco_proprietario?: string | null
+          fotos_chassi?: string[] | null
+          fotos_frente?: string[] | null
+          fotos_lateral_direita?: string[] | null
+          fotos_lateral_esquerda?: string[] | null
+          fotos_motor?: string[] | null
+          fotos_traseira?: string[] | null
+          furto_roubo?: boolean | null
+          id?: string
+          informacoes_complementares_possuidor?: string | null
+          informacoes_complementares_proprietario?: string | null
+          infracoes_transito?: string | null
+          ipva?: string | null
+          licenciamento?: string | null
+          marca?: string | null
+          modelo?: string | null
+          municipio?: string | null
+          nome_financeira?: string | null
+          nome_possuidor?: string | null
+          nome_proprietario?: string | null
+          numero_casa_proprietario?: string | null
+          numero_chassi?: string | null
+          numero_controle?: string
+          numero_endereco_financeira?: string | null
+          numero_motor?: string | null
+          observacoes?: string | null
+          placa?: string | null
+          possui_comunicacao_venda?: boolean | null
+          renavam?: string | null
+          restricao_administrativa?: boolean | null
+          restricao_judicial?: boolean | null
+          tipo_combustivel?: string | null
+          uf?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
