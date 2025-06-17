@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,6 +44,23 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
   const addVistoriaMutation = useMutation({
     mutationFn: async (vistoriaData: VistoriaFormData) => {
       console.log('Adding vistoria:', vistoriaData);
+      
+      // Log user activity
+      try {
+        await supabase.rpc('log_user_activity', {
+          p_activity_type: 'VISTORIA_CREATED',
+          p_description: `Nova vistoria criada - Placa: ${vistoriaData.placa || 'N/A'}`,
+          p_metadata: {
+            numero_controle: vistoriaData.numero_controle,
+            placa: vistoriaData.placa,
+            marca: vistoriaData.marca,
+            modelo: vistoriaData.modelo
+          }
+        });
+      } catch (activityError) {
+        console.error('Error logging activity:', activityError);
+      }
+
       const { data, error } = await supabase
         .from('vistorias')
         .insert([{

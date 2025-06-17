@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ import PhotoUploadSection from '@/components/forms/PhotoUploadSection';
 const NewVistoria: React.FC = () => {
   const navigate = useNavigate();
   const { addVistoria } = useVistorias();
+  const [uploadedPhotos, setUploadedPhotos] = useState<Record<string, string[]>>({});
   
   const form = useForm<VistoriaFormData>({
     defaultValues: {
@@ -32,9 +32,24 @@ const NewVistoria: React.FC = () => {
     },
   });
 
+  const handlePhotosChange = (photos: Record<string, string[]>) => {
+    setUploadedPhotos(photos);
+  };
+
   const onSubmit = (data: VistoriaFormData) => {
-    console.log('Form submitted:', data);
-    addVistoria(data);
+    // Include photo URLs in the form data
+    const formDataWithPhotos = {
+      ...data,
+      fotos_frente: uploadedPhotos.frente || [],
+      fotos_lateral_esquerda: uploadedPhotos.lateral_esquerda || [],
+      fotos_lateral_direita: uploadedPhotos.lateral_direita || [],
+      fotos_chassi: uploadedPhotos.chassi || [],
+      fotos_traseira: uploadedPhotos.traseira || [],
+      fotos_motor: uploadedPhotos.motor || []
+    };
+
+    console.log('Form submitted with photos:', formDataWithPhotos);
+    addVistoria(formDataWithPhotos);
     navigate('/inspections');
   };
 
@@ -64,7 +79,7 @@ const NewVistoria: React.FC = () => {
           <DebtInfoSection control={form.control} />
           <SaleInfoSection control={form.control} />
           <FinancialInfoSection control={form.control} />
-          <PhotoUploadSection />
+          <PhotoUploadSection onPhotosChange={handlePhotosChange} />
 
           <div className="flex justify-end gap-4">
             <Button
