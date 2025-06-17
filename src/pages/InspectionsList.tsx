@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Eye, Edit2, Trash2, Filter, Download, Loader2, AlertTriangle } from 'lucide-react';
@@ -158,10 +159,22 @@ const InspectionsList: React.FC = () => {
                   
                   <td className="py-4 px-4">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="w-8 h-8">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="w-8 h-8">
+                      <Link to={`/inspections/${vistoria.id}`}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="w-8 h-8 text-blue-600 hover:text-blue-700"
+                          title="Visualizar"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="w-8 h-8"
+                        title="Editar"
+                      >
                         <Edit2 className="w-4 h-4" />
                       </Button>
                       <Link to={`/inspections/${vistoria.id}/damage-assessment`}>
@@ -179,6 +192,7 @@ const InspectionsList: React.FC = () => {
                         size="icon" 
                         className="w-8 h-8 text-red-600 hover:text-red-700"
                         onClick={() => handleDelete(vistoria.id)}
+                        title="Excluir"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

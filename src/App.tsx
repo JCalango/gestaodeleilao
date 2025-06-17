@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,7 @@ import AuthGuard from "@/components/Auth/AuthGuard";
 import MainLayout from "@/components/Layout/MainLayout";
 import Dashboard from "@/pages/Dashboard";
 import InspectionsList from "@/pages/InspectionsList";
+import InspectionDetails from "@/pages/InspectionDetails";
 import NewVistoria from "@/pages/NewVistoria";
 import UsersManagement from "@/pages/UsersManagement";
 import DamageAssessment from "@/pages/DamageAssessment";
@@ -29,6 +31,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/inspections" element={<InspectionsList />} />
+                  <Route path="/inspections/:id" element={<InspectionDetails />} />
                   <Route path="/inspections/new" element={<NewVistoria />} />
                   <Route path="/inspections/:vistoriaId/damage-assessment" element={<DamageAssessment />} />
                   <Route path="/users" element={<UsersManagement />} />
