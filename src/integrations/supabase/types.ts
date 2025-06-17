@@ -624,6 +624,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activities: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       vistorias: {
         Row: {
           alienacao_fiduciaria: boolean | null
@@ -836,6 +863,14 @@ export type Database = {
           _role: Database["public"]["Enums"]["user_role"]
         }
         Returns: boolean
+      }
+      log_user_activity: {
+        Args: {
+          p_activity_type: string
+          p_description?: string
+          p_metadata?: Json
+        }
+        Returns: undefined
       }
     }
     Enums: {

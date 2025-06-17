@@ -45,18 +45,25 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
     mutationFn: async (vistoriaData: VistoriaFormData) => {
       console.log('Adding vistoria:', vistoriaData);
       
-      // Log user activity
+      // Log user activity using the new function
       try {
-        await supabase.rpc('log_user_activity', {
-          p_activity_type: 'VISTORIA_CREATED',
-          p_description: `Nova vistoria criada - Placa: ${vistoriaData.placa || 'N/A'}`,
-          p_metadata: {
-            numero_controle: vistoriaData.numero_controle,
-            placa: vistoriaData.placa,
-            marca: vistoriaData.marca,
-            modelo: vistoriaData.modelo
-          }
-        });
+        const { error: activityError } = await supabase
+          .from('user_activities')
+          .insert([{
+            user_id: user?.id,
+            activity_type: 'VISTORIA_CREATED',
+            description: `Nova vistoria criada - Placa: ${vistoriaData.placa || 'N/A'}`,
+            metadata: {
+              numero_controle: vistoriaData.numero_controle,
+              placa: vistoriaData.placa,
+              marca: vistoriaData.marca,
+              modelo: vistoriaData.modelo
+            }
+          }]);
+        
+        if (activityError) {
+          console.error('Error logging activity:', activityError);
+        }
       } catch (activityError) {
         console.error('Error logging activity:', activityError);
       }
