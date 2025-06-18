@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit2, Car, User, Building, AlertTriangle, FileText, Camera } from 'lucide-react';
+import { ArrowLeft, Edit2, FileText, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import OwnerInfoCard from '@/components/inspection/OwnerInfoCard';
 import DebtsInfoCard from '@/components/inspection/DebtsInfoCard';
 import RestrictionsCard from '@/components/inspection/RestrictionsCard';
 import PhotosCard from '@/components/inspection/PhotosCard';
+import { generateInspectionPDF } from '@/utils/pdfGenerator';
 
 const InspectionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,12 @@ const InspectionDetails: React.FC = () => {
   const { getVistoriaById } = useVistorias();
 
   const vistoria = id ? getVistoriaById(id) : null;
+
+  const handleGeneratePDF = () => {
+    if (vistoria) {
+      generateInspectionPDF(vistoria);
+    }
+  };
 
   if (!vistoria) {
     return (
@@ -64,11 +71,11 @@ const InspectionDetails: React.FC = () => {
             Editar
           </Button>
           <Button 
-            onClick={() => navigate(`/inspections/${id}/damage-assessment`)}
-            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700"
+            onClick={handleGeneratePDF}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
           >
-            <AlertTriangle className="w-4 h-4" />
-            Avaliação de Avarias
+            <Download className="w-4 h-4" />
+            Gerar PDF
           </Button>
         </div>
       </div>

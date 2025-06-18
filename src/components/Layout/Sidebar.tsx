@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           </div>
           {!isCollapsed && (
             <div>
-              <h1 className="font-bold text-lg">AuctionPro</h1>
+              <h1 className="font-bold text-lg">Guanambi Leilões</h1>
               <p className="text-xs text-slate-400">Gestão de Leilões</p>
             </div>
           )}
