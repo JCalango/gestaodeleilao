@@ -1,30 +1,28 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { Vistoria, VistoriaFormData } from '@/types/vistoria';
 import { toast } from '@/hooks/use-toast';
+import { Vistoria, VistoriaFormData } from '@/types/vistoria';
 
 interface VistoriaContextType {
   vistorias: Vistoria[];
   isLoading: boolean;
-  error: Error | null;
-  addVistoria: (vistoria: VistoriaFormData) => void;
-  updateVistoria: (id: string, vistoria: Partial<Vistoria>) => void;
-  deleteVistoria: (id: string) => void;
+  addVistoria: (vistoria: VistoriaFormData) => Promise<void>;
+  updateVistoria: (id: string, vistoria: Partial<Vistoria>) => Promise<void>;
+  deleteVistoria: (id: string) => Promise<void>;
   getVistoriaById: (id: string) => Vistoria | undefined;
+  refreshVistorias: () => Promise<void>;
 }
 
 const VistoriaContext = createContext<VistoriaContextType | undefined>(undefined);
 
 export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const [vistorias, setVistorias] = useState<Vistoria[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { data: vistorias = [], isLoading, error } = useQuery({
-    queryKey: ['vistorias'],
-    queryFn: async () => {
-      console.log('Fetching vistorias...');
+  const fetchVistorias = async () => {
+    try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('vistorias')
         .select('*')
@@ -32,86 +30,96 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       if (error) {
         console.error('Error fetching vistorias:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar vistorias",
+          variant: "destructive",
+        });
+        return;
       }
 
-      console.log('Vistorias fetched:', data);
-      return data as Vistoria[];
-    },
-    enabled: !!user,
-  });
+      setVistorias(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar vistorias",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const addVistoriaMutation = useMutation({
-    mutationFn: async (vistoriaData: VistoriaFormData) => {
-      console.log('Adding vistoria:', vistoriaData);
+  const addVistoria = async (vistoriaData: VistoriaFormData) => {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // Log user activity using the new function
-      try {
-        const { error: activityError } = await supabase
-          .from('user_activities')
-          .insert([{
-            user_id: user?.id,
-            activity_type: 'VISTORIA_CREATED',
-            description: `Nova vistoria criada - Placa: ${vistoriaData.placa || 'N/A'}`,
-            metadata: {
-              numero_controle: vistoriaData.numero_controle,
-              placa: vistoriaData.placa,
-              marca: vistoriaData.marca,
-              modelo: vistoriaData.modelo
-            }
-          }]);
-        
-        if (activityError) {
-          console.error('Error logging activity:', activityError);
-        }
-      } catch (activityError) {
-        console.error('Error logging activity:', activityError);
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para criar uma vistoria",
+          variant: "destructive",
+        });
+        return;
       }
 
       const { data, error } = await supabase
         .from('vistorias')
         .insert([{
           ...vistoriaData,
-          created_by: user?.id,
-          updated_by: user?.id,
+          created_by: user.id, // Set the created_by field
+          updated_by: user.id
         }])
         .select()
         .single();
 
       if (error) {
         console.error('Error adding vistoria:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Erro ao salvar vistoria",
+          variant: "destructive",
+        });
+        return;
       }
 
-      console.log('Vistoria added:', data);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vistorias'] });
+      setVistorias(prev => [data, ...prev]);
       toast({
         title: "Sucesso",
-        description: "Vistoria cadastrada com sucesso!",
+        description: "Vistoria salva com sucesso!",
       });
-    },
-    onError: (error) => {
-      console.error('Mutation error:', error);
+    } catch (error) {
+      console.error('Error:', error);
       toast({
         title: "Erro",
-        description: "Erro ao cadastrar vistoria. Tente novamente.",
+        description: "Erro ao salvar vistoria",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
-  const updateVistoriaMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Vistoria> }) => {
-      console.log('Updating vistoria:', id, updates);
+  const updateVistoria = async (id: string, vistoriaData: Partial<Vistoria>) => {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Você precisa estar logado para atualizar uma vistoria",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('vistorias')
         .update({
-          ...updates,
-          updated_by: user?.id,
-          updated_at: new Date().toISOString(),
+          ...vistoriaData,
+          updated_by: user.id,
+          updated_at: new Date().toISOString()
         })
         .eq('id', id)
         .select()
@@ -119,32 +127,31 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       if (error) {
         console.error('Error updating vistoria:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar vistoria",
+          variant: "destructive",
+        });
+        return;
       }
 
-      console.log('Vistoria updated:', data);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vistorias'] });
+      setVistorias(prev => prev.map(v => v.id === id ? data : v));
       toast({
         title: "Sucesso",
         description: "Vistoria atualizada com sucesso!",
       });
-    },
-    onError: (error) => {
-      console.error('Update mutation error:', error);
+    } catch (error) {
+      console.error('Error:', error);
       toast({
         title: "Erro",
-        description: "Erro ao atualizar vistoria. Tente novamente.",
+        description: "Erro ao atualizar vistoria",
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
-  const deleteVistoriaMutation = useMutation({
-    mutationFn: async (id: string) => {
-      console.log('Deleting vistoria:', id);
+  const deleteVistoria = async (id: string) => {
+    try {
       const { error } = await supabase
         .from('vistorias')
         .delete()
@@ -152,62 +159,61 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       if (error) {
         console.error('Error deleting vistoria:', error);
-        throw error;
+        toast({
+          title: "Erro",
+          description: "Erro ao excluir vistoria",
+          variant: "destructive",
+        });
+        return;
       }
 
-      console.log('Vistoria deleted:', id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vistorias'] });
+      setVistorias(prev => prev.filter(v => v.id !== id));
       toast({
         title: "Sucesso",
         description: "Vistoria excluída com sucesso!",
       });
-    },
-    onError: (error) => {
-      console.error('Delete mutation error:', error);
+    } catch (error) {
+      console.error('Error:', error);
       toast({
         title: "Erro",
-        description: "Erro ao excluir vistoria. Tente novamente.",
+        description: "Erro ao excluir vistoria",
         variant: "destructive",
       });
-    },
-  });
-
-  const addVistoria = (vistoria: VistoriaFormData) => {
-    addVistoriaMutation.mutate(vistoria);
+    }
   };
 
-  const updateVistoria = (id: string, updates: Partial<Vistoria>) => {
-    updateVistoriaMutation.mutate({ id, updates });
+  const getVistoriaById = (id: string): Vistoria | undefined => {
+    return vistorias.find(v => v.id === id);
   };
 
-  const deleteVistoria = (id: string) => {
-    deleteVistoriaMutation.mutate(id);
+  const refreshVistorias = async () => {
+    await fetchVistorias();
   };
 
-  const getVistoriaById = (id: string) => {
-    return vistorias?.find(vistoria => vistoria.id === id);
+  useEffect(() => {
+    fetchVistorias();
+  }, []);
+
+  const value: VistoriaContextType = {
+    vistorias,
+    isLoading,
+    addVistoria,
+    updateVistoria,
+    deleteVistoria,
+    getVistoriaById,
+    refreshVistorias,
   };
 
   return (
-    <VistoriaContext.Provider value={{
-      vistorias: vistorias || [],
-      isLoading,
-      error: error as Error | null,
-      addVistoria,
-      updateVistoria,
-      deleteVistoria,
-      getVistoriaById,
-    }}>
+    <VistoriaContext.Provider value={value}>
       {children}
     </VistoriaContext.Provider>
   );
 };
 
-export const useVistorias = () => {
+export const useVistorias = (): VistoriaContextType => {
   const context = useContext(VistoriaContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useVistorias must be used within a VistoriaProvider');
   }
   return context;

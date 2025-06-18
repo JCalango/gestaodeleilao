@@ -15,6 +15,7 @@ export interface SimpleDamageAssessment {
   items_data: Record<string, string>;
   observations: string;
   created_at: string;
+  updated_at: string; // Add this field to fix the build error
   // Add missing properties to match VehicleDamageAssessment
   assessment_date: string;
   assessor_name?: string;
@@ -80,7 +81,8 @@ export const useDamageAssessment = (vistoriaId?: string) => {
         total_nao_count: assessmentData.total_nao_count || 0,
         total_na_count: assessmentData.total_na_count || 0,
         is_completed: assessmentData.is_completed || false,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString() // Add this field
       } as SimpleDamageAssessment;
     },
     onSuccess: () => {

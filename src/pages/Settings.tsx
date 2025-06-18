@@ -2,10 +2,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Settings as SettingsIcon, Upload, Trash2, Image } from 'lucide-react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 const Settings: React.FC = () => {
@@ -41,14 +40,40 @@ const Settings: React.FC = () => {
     setUploading(settingKey);
 
     try {
-      // Convert file to base64 for storage
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64 = e.target?.result as string;
-        await updateSetting(settingKey, base64);
-        setUploading(null);
-      };
-      reader.readAsDataURL(file);
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${settingKey}_${Date.now()}.${fileExt}`;
+
+      // Upload to storage
+      const { data, error } = await supabase.storage
+        .from('system-logos')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) throw error;
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('system-logos')
+        .getPublicUrl(fileName);
+
+      if (publicUrlData?.publicUrl) {
+        // Delete old logo file if exists
+        const oldLogoUrl = getSetting(settingKey);
+        if (oldLogoUrl && oldLogoUrl.includes('system-logos')) {
+          const oldFileName = oldLogoUrl.split('/').pop();
+          if (oldFileName) {
+            await supabase.storage
+              .from('system-logos')
+              .remove([oldFileName]);
+          }
+        }
+
+        // Update setting with new URL
+        await updateSetting(settingKey, publicUrlData.publicUrl);
+      }
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -56,12 +81,35 @@ const Settings: React.FC = () => {
         description: "Erro ao fazer upload da imagem.",
         variant: "destructive",
       });
+    } finally {
       setUploading(null);
     }
   };
 
   const handleRemoveLogo = async (settingKey: string) => {
-    await updateSetting(settingKey, null);
+    try {
+      const logoUrl = getSetting(settingKey);
+      
+      // Remove from storage if it's a storage URL
+      if (logoUrl && logoUrl.includes('system-logos')) {
+        const fileName = logoUrl.split('/').pop();
+        if (fileName) {
+          await supabase.storage
+            .from('system-logos')
+            .remove([fileName]);
+        }
+      }
+
+      // Update setting to null
+      await updateSetting(settingKey, null);
+    } catch (error) {
+      console.error('Remove error:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao remover imagem.",
+        variant: "destructive",
+      });
+    }
   };
 
   const LogoUploadCard = ({ 
@@ -91,6 +139,10 @@ const Settings: React.FC = () => {
                 src={currentLogo}
                 alt={title}
                 className="max-h-32 mx-auto object-contain"
+                onError={(e) => {
+                  console.error('Image failed to load:', currentLogo);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             </div>
             <div className="flex gap-2">
@@ -184,7 +236,7 @@ const Settings: React.FC = () => {
           <div className="space-y-2 text-sm text-slate-600">
             <p>• Os logos carregados serão utilizados na geração de PDFs e relatórios.</p>
             <p>• Recomenda-se usar imagens com fundo transparente (PNG) para melhor resultado.</p>
-            <p>• As imagens serão redimensionadas automaticamente conforme necessário.</p>
+            <p>• As imagens são armazenadas de forma segura no sistema.</p>
             <p>• Apenas usuários administradores podem alterar essas configurações.</p>
           </div>
         </CardContent>
