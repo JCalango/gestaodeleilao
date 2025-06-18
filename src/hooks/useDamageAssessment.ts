@@ -15,6 +15,15 @@ export interface SimpleDamageAssessment {
   items_data: Record<string, string>;
   observations: string;
   created_at: string;
+  // Add missing properties to match VehicleDamageAssessment
+  assessment_date: string;
+  assessor_name?: string;
+  assessor_registration?: string;
+  vehicle_classification?: string;
+  total_sim_count: number;
+  total_nao_count: number;
+  total_na_count: number;
+  is_completed: boolean;
 }
 
 export interface DamageCategory {
@@ -28,6 +37,9 @@ export interface DamageItem {
   category_id: string;
   name: string;
   vehicle_type: string;
+  description?: string;
+  requires_photo?: boolean;
+  severity_levels: string[];
 }
 
 export const useDamageAssessment = (vistoriaId?: string) => {
@@ -49,10 +61,25 @@ export const useDamageAssessment = (vistoriaId?: string) => {
       // For now, just log the data - will be implemented when tables are created
       console.log('Creating assessment:', assessmentData);
       
-      // Return a mock response
+      // Return a mock response with all required fields
       return {
         id: 'mock-id',
-        ...assessmentData,
+        vistoria_id: assessmentData.vistoria_id || '',
+        vehicle_type: assessmentData.vehicle_type || '',
+        classification: assessmentData.classification || '',
+        sim_count: assessmentData.sim_count || 0,
+        nao_count: assessmentData.nao_count || 0,
+        na_count: assessmentData.na_count || 0,
+        items_data: assessmentData.items_data || {},
+        observations: assessmentData.observations || '',
+        assessment_date: assessmentData.assessment_date || new Date().toISOString(),
+        assessor_name: assessmentData.assessor_name || '',
+        assessor_registration: assessmentData.assessor_registration || '',
+        vehicle_classification: assessmentData.vehicle_classification || '',
+        total_sim_count: assessmentData.total_sim_count || 0,
+        total_nao_count: assessmentData.total_nao_count || 0,
+        total_na_count: assessmentData.total_na_count || 0,
+        is_completed: assessmentData.is_completed || false,
         created_at: new Date().toISOString()
       } as SimpleDamageAssessment;
     },
@@ -77,10 +104,26 @@ export const useDamageAssessment = (vistoriaId?: string) => {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<SimpleDamageAssessment> }) => {
       console.log('Updating assessment:', id, updates);
       
-      // Return a mock response
+      // Return a mock response with all required fields
       return {
         id,
-        ...updates,
+        vistoria_id: updates.vistoria_id || '',
+        vehicle_type: updates.vehicle_type || '',
+        classification: updates.classification || '',
+        sim_count: updates.sim_count || 0,
+        nao_count: updates.nao_count || 0,
+        na_count: updates.na_count || 0,
+        items_data: updates.items_data || {},
+        observations: updates.observations || '',
+        assessment_date: updates.assessment_date || new Date().toISOString(),
+        assessor_name: updates.assessor_name || '',
+        assessor_registration: updates.assessor_registration || '',
+        vehicle_classification: updates.vehicle_classification || '',
+        total_sim_count: updates.total_sim_count || 0,
+        total_nao_count: updates.total_nao_count || 0,
+        total_na_count: updates.total_na_count || 0,
+        is_completed: updates.is_completed || false,
+        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       } as SimpleDamageAssessment;
     },
@@ -166,7 +209,15 @@ export const useCreateDamageAssessment = () => {
   return useMutation({
     mutationFn: async (data: Partial<SimpleDamageAssessment>) => {
       console.log('Creating damage assessment:', data);
-      return { id: 'mock-id', ...data } as SimpleDamageAssessment;
+      return { 
+        id: 'mock-id', 
+        ...data,
+        assessment_date: data.assessment_date || new Date().toISOString(),
+        total_sim_count: data.total_sim_count || 0,
+        total_nao_count: data.total_nao_count || 0,
+        total_na_count: data.total_na_count || 0,
+        is_completed: data.is_completed || false
+      } as SimpleDamageAssessment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['damage-assessments'] });

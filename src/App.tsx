@@ -13,6 +13,7 @@ import InspectionsList from "@/pages/InspectionsList";
 import InspectionDetails from "@/pages/InspectionDetails";
 import NewVistoria from "@/pages/NewVistoria";
 import UsersManagement from "@/pages/UsersManagement";
+import Settings from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
                   <Route path="/inspections/:id" element={<InspectionDetails />} />
                   <Route path="/inspections/new" element={<NewVistoria />} />
                   <Route path="/users" element={<UsersManagement />} />
+                  <Route path="/settings" element={<Settings />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
