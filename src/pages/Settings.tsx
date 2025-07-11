@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings as SettingsIcon, Upload, Trash2, Image } from 'lucide-react';
+import { Settings as SettingsIcon, Upload, Trash2, Image, FileImage, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -10,13 +10,12 @@ import { toast } from '@/hooks/use-toast';
 const Settings: React.FC = () => {
   const { getSetting, updateSetting, isUpdating } = useSystemSettings();
   const [uploading, setUploading] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState<string | null>(null);
 
   const prefeituraLogo = getSetting('prefeitura_logo');
   const smtranLogo = getSetting('smtran_logo');
 
-  const handleFileUpload = async (file: File, settingKey: string) => {
-    if (!file) return;
-
+  const validateFile = (file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
@@ -24,32 +23,45 @@ const Settings: React.FC = () => {
         description: "Por favor, selecione apenas arquivos de imagem.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Increased file size limit to 20MB
+    if (file.size > 20 * 1024 * 1024) {
       toast({
         title: "Erro",
-        description: "O arquivo deve ter no máximo 5MB.",
+        description: "O arquivo deve ter no máximo 20MB.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
+
+    return true;
+  };
+
+  const handleFileUpload = async (file: File, settingKey: string) => {
+    if (!file || !validateFile(file)) return;
 
     setUploading(settingKey);
 
     try {
-      // Generate unique filename
+      // Generate unique filename with timestamp
       const fileExt = file.name.split('.').pop();
-      const fileName = `${settingKey}_${Date.now()}.${fileExt}`;
+      const fileName = `${settingKey}_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      // Upload to storage
+      // Show upload progress
+      toast({
+        title: "Upload em andamento",
+        description: "Fazendo upload da imagem...",
+      });
+
+      // Upload to storage with higher quality settings
       const { data, error } = await supabase.storage
         .from('system-logos')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
+          contentType: file.type
         });
 
       if (error) throw error;
@@ -73,12 +85,17 @@ const Settings: React.FC = () => {
 
         // Update setting with new URL
         await updateSetting(settingKey, publicUrlData.publicUrl);
+        
+        toast({
+          title: "Sucesso",
+          description: "Logo atualizado com sucesso!",
+        });
       }
     } catch (error) {
       console.error('Upload error:', error);
       toast({
         title: "Erro",
-        description: "Erro ao fazer upload da imagem.",
+        description: "Erro ao fazer upload da imagem. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -102,6 +119,11 @@ const Settings: React.FC = () => {
 
       // Update setting to null
       await updateSetting(settingKey, null);
+      
+      toast({
+        title: "Sucesso",
+        description: "Logo removido com sucesso!",
+      });
     } catch (error) {
       console.error('Remove error:', error);
       toast({
@@ -110,6 +132,34 @@ const Settings: React.FC = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleDragOver = useCallback((e: React.DragEvent, settingKey: string) => {
+    e.preventDefault();
+    setDragActive(settingKey);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragActive(null);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, settingKey: string) => {
+    e.preventDefault();
+    setDragActive(null);
+    
+    const files = e.dataTransfer.files;
+    if (files && files[0]) {
+      handleFileUpload(files[0], settingKey);
+    }
+  }, []);
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const LogoUploadCard = ({ 
@@ -123,10 +173,10 @@ const Settings: React.FC = () => {
     settingKey: string; 
     currentLogo: string | null; 
   }) => (
-    <Card>
+    <Card className="transition-all duration-200 hover:shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Image className="w-5 h-5" />
+          <FileImage className="w-5 h-5" />
           {title}
         </CardTitle>
         <CardDescription>{description}</CardDescription>
@@ -134,50 +184,85 @@ const Settings: React.FC = () => {
       <CardContent className="space-y-4">
         {currentLogo ? (
           <div className="space-y-4">
-            <div className="border rounded-lg p-4 bg-slate-50">
-              <img
-                src={currentLogo}
-                alt={title}
-                className="max-h-32 mx-auto object-contain"
-                onError={(e) => {
-                  console.error('Image failed to load:', currentLogo);
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+            <div className="border-2 border-dashed border-slate-200 rounded-lg p-4 bg-slate-50 transition-colors">
+              <div className="flex items-center justify-center">
+                <img
+                  src={currentLogo}
+                  alt={title}
+                  className="max-h-40 max-w-full object-contain rounded-md shadow-sm"
+                  onError={(e) => {
+                    console.error('Image failed to load:', currentLogo);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-center gap-2 text-sm text-slate-600">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                Logo carregado
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button
                 variant="outline"
                 onClick={() => document.getElementById(`${settingKey}-input`)?.click()}
                 disabled={uploading === settingKey || isUpdating}
+                className="flex-1"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Alterar Logo
+                {uploading === settingKey ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Carregando...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Alterar Logo
+                  </>
+                )}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => handleRemoveLogo(settingKey)}
                 disabled={uploading === settingKey || isUpdating}
-                className="text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Remover
+                <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
-              <Image className="w-12 h-12 mx-auto text-slate-400 mb-2" />
-              <p className="text-slate-600 mb-4">Nenhum logo carregado</p>
-              <Button
-                variant="outline"
-                onClick={() => document.getElementById(`${settingKey}-input`)?.click()}
-                disabled={uploading === settingKey || isUpdating}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                {uploading === settingKey ? 'Carregando...' : 'Fazer Upload'}
-              </Button>
+            <div 
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 cursor-pointer
+                ${dragActive === settingKey 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-slate-300 hover:border-slate-400 hover:bg-slate-50'
+                }`}
+              onDragOver={(e) => handleDragOver(e, settingKey)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, settingKey)}
+              onClick={() => document.getElementById(`${settingKey}-input`)?.click()}
+            >
+              <div className="flex flex-col items-center gap-3">
+                {uploading === settingKey ? (
+                  <>
+                    <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+                    <p className="text-slate-600">Fazendo upload...</p>
+                  </>
+                ) : (
+                  <>
+                    <Image className="w-12 h-12 text-slate-400" />
+                    <div>
+                      <p className="text-slate-600 font-medium mb-1">
+                        {dragActive === settingKey ? 'Solte a imagem aqui' : 'Arraste uma imagem ou clique para selecionar'}
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        Suporte para PNG, JPG, JPEG, GIF, WebP
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -193,8 +278,19 @@ const Settings: React.FC = () => {
           }}
         />
         
-        <div className="text-xs text-slate-500">
-          Formatos aceitos: PNG, JPG, JPEG. Tamanho máximo: 5MB.
+        <div className="text-xs text-slate-500 space-y-1">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-3 h-3" />
+            <span>Formatos aceitos: PNG, JPG, JPEG, GIF, WebP</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-3 h-3" />
+            <span>Tamanho máximo: 20MB</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-3 h-3" />
+            <span>Recomendado: Imagens de alta resolução com fundo transparente</span>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -230,14 +326,34 @@ const Settings: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Informações</CardTitle>
+          <CardTitle>Informações sobre Upload de Logos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2 text-sm text-slate-600">
-            <p>• Os logos carregados serão utilizados na geração de PDFs e relatórios.</p>
-            <p>• Recomenda-se usar imagens com fundo transparente (PNG) para melhor resultado.</p>
-            <p>• As imagens são armazenadas de forma segura no sistema.</p>
-            <p>• Apenas usuários administradores podem alterar essas configurações.</p>
+          <div className="space-y-3 text-sm text-slate-600">
+            <div className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <span>Os logos carregados serão utilizados na geração de PDFs e relatórios.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <span>Suporte aprimorado para imagens de alta resolução (até 20MB).</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <span>Recomenda-se usar imagens com fundo transparente (PNG) para melhor resultado.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <span>Funcionalidade de arrastar e soltar para upload mais rápido.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <span>As imagens são armazenadas de forma segura no sistema.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <span>Apenas usuários administradores podem alterar essas configurações.</span>
+            </div>
           </div>
         </CardContent>
       </Card>
