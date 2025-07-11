@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const getSystemLogos = async () => {
   try {
+    console.log('Fetching system logos from database...');
     const { data: settings, error } = await supabase
       .from('system_settings')
       .select('*')
@@ -14,8 +15,12 @@ const getSystemLogos = async () => {
       return { prefeituraLogo: null, smtranLogo: null };
     }
 
+    console.log('Settings data:', settings);
+
     const prefeituraLogo = settings?.find(s => s.setting_key === 'prefeitura_logo')?.setting_value || null;
     const smtranLogo = settings?.find(s => s.setting_key === 'smtran_logo')?.setting_value || null;
+
+    console.log('Logo URLs - Prefeitura:', prefeituraLogo, 'SMTRAN:', smtranLogo);
 
     return { prefeituraLogo, smtranLogo };
   } catch (error) {
@@ -24,9 +29,45 @@ const getSystemLogos = async () => {
   }
 };
 
+const preloadImage = (url: string): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      console.log('Image loaded successfully:', url);
+      resolve(true);
+    };
+    img.onerror = (error) => {
+      console.error('Image failed to load:', url, error);
+      resolve(false);
+    };
+    img.src = url;
+  });
+};
+
 export const generateInspectionPDF = async (vistoria: Vistoria) => {
+  console.log('Starting PDF generation for vistoria:', vistoria.placa);
+  
   // Buscar logos do sistema
   const { prefeituraLogo, smtranLogo } = await getSystemLogos();
+  
+  // Pre-carregar as imagens se existirem
+  const logoPromises = [];
+  if (prefeituraLogo) {
+    console.log('Preloading prefeitura logo:', prefeituraLogo);
+    logoPromises.push(preloadImage(prefeituraLogo));
+  }
+  if (smtranLogo) {
+    console.log('Preloading SMTRAN logo:', smtranLogo);
+    logoPromises.push(preloadImage(smtranLogo));
+  }
+  
+  // Aguardar o carregamento das imagens
+  if (logoPromises.length > 0) {
+    console.log('Waiting for logos to load...');
+    await Promise.all(logoPromises);
+    console.log('All logos loaded');
+  }
   
   // Criar nova janela para o PDF
   const printWindow = window.open('', '_blank');
@@ -111,8 +152,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
         }
         
         .logo-container {
-          width: 80px;
-          height: 80px;
+          width: 100px;
+          height: 100px;
           background: white;
           border-radius: 8px;
           display: flex;
@@ -133,10 +174,11 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
         }
         
         .logo-text {
-          font-size: 12px;
+          font-size: 11px;
           font-weight: bold;
           text-align: center;
           color: #1e40af;
+          line-height: 1.2;
         }
         
         .header-text {
@@ -446,7 +488,7 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
             <div class="header-left">
               <div class="logo-container">
                 ${prefeituraLogo 
-                  ? `<img src="${prefeituraLogo}" alt="Prefeitura" class="logo-image" />` 
+                  ? `<img src="${prefeituraLogo}" alt="Prefeitura" class="logo-image" crossorigin="anonymous" />` 
                   : '<div class="logo-text">PREFEITURA<br>GUANAMBI</div>'
                 }
               </div>
@@ -458,7 +500,7 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
             <div class="header-right">
               <div class="logo-container">
                 ${smtranLogo 
-                  ? `<img src="${smtranLogo}" alt="SMTRAN" class="logo-image" />` 
+                  ? `<img src="${smtranLogo}" alt="SMTRAN" class="logo-image" crossorigin="anonymous" />` 
                   : '<div class="logo-text">SMTRAN</div>'
                 }
               </div>
@@ -646,13 +688,15 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
     </html>
   `;
 
+  console.log('Writing HTML to print window...');
   printWindow.document.write(html);
   printWindow.document.close();
   
   // Aguardar o carregamento e então imprimir
   printWindow.onload = () => {
+    console.log('Print window loaded, starting print...');
     setTimeout(() => {
       printWindow.print();
-    }, 500);
+    }, 1000); // Aumentei o delay para garantir que as imagens carreguem
   };
 };
