@@ -1,7 +1,33 @@
 
 import { Vistoria } from '@/types/vistoria';
+import { supabase } from '@/integrations/supabase/client';
 
-export const generateInspectionPDF = (vistoria: Vistoria) => {
+const getSystemLogos = async () => {
+  try {
+    const { data: settings, error } = await supabase
+      .from('system_settings')
+      .select('*')
+      .in('setting_key', ['prefeitura_logo', 'smtran_logo']);
+
+    if (error) {
+      console.error('Error fetching logos:', error);
+      return { prefeituraLogo: null, smtranLogo: null };
+    }
+
+    const prefeituraLogo = settings?.find(s => s.setting_key === 'prefeitura_logo')?.setting_value || null;
+    const smtranLogo = settings?.find(s => s.setting_key === 'smtran_logo')?.setting_value || null;
+
+    return { prefeituraLogo, smtranLogo };
+  } catch (error) {
+    console.error('Error fetching system logos:', error);
+    return { prefeituraLogo: null, smtranLogo: null };
+  }
+};
+
+export const generateInspectionPDF = async (vistoria: Vistoria) => {
+  // Buscar logos do sistema
+  const { prefeituraLogo, smtranLogo } = await getSystemLogos();
+  
   // Criar nova janela para o PDF
   const printWindow = window.open('', '_blank');
   
@@ -70,7 +96,7 @@ export const generateInspectionPDF = (vistoria: Vistoria) => {
           text-align: right;
         }
         
-        .logo-placeholder {
+        .logo-container {
           width: 60px;
           height: 60px;
           background: white;
@@ -81,6 +107,20 @@ export const generateInspectionPDF = (vistoria: Vistoria) => {
           color: #1e40af;
           font-weight: bold;
           margin-bottom: 10px;
+          overflow: hidden;
+        }
+        
+        .logo-image {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          border-radius: 8px;
+        }
+        
+        .logo-text {
+          font-size: 10px;
+          font-weight: bold;
+          text-align: center;
         }
         
         .municipal-title {
@@ -293,15 +333,21 @@ export const generateInspectionPDF = (vistoria: Vistoria) => {
         <div class="header">
           <div class="header-content">
             <div class="header-left">
-              <div class="logo-placeholder">
-                GUANAMBI
+              <div class="logo-container">
+                ${prefeituraLogo 
+                  ? `<img src="${prefeituraLogo}" alt="Prefeitura" class="logo-image" />` 
+                  : '<div class="logo-text">GUANAMBI</div>'
+                }
               </div>
               <div class="municipal-title">PREFEITURA MUNICIPAL DE GUANAMBI</div>
               <div class="subtitle">SMTRAN - Superintendência Municipal de Trânsito</div>
             </div>
             <div class="header-right">
-              <div class="logo-placeholder" style="margin-left: auto;">
-                SMTRAN
+              <div class="logo-container" style="margin-left: auto;">
+                ${smtranLogo 
+                  ? `<img src="${smtranLogo}" alt="SMTRAN" class="logo-image" />` 
+                  : '<div class="logo-text">SMTRAN</div>'
+                }
               </div>
               <div class="document-title">LAUDO DE VISTORIA VEICULAR</div>
               <div class="date-info">Data: ${currentDate}</div>

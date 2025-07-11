@@ -13,6 +13,7 @@ import DebtsInfoCard from '@/components/inspection/DebtsInfoCard';
 import RestrictionsCard from '@/components/inspection/RestrictionsCard';
 import PhotosCard from '@/components/inspection/PhotosCard';
 import { generateInspectionPDF } from '@/utils/pdfGenerator';
+import { toast } from '@/hooks/use-toast';
 
 const InspectionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,9 +22,18 @@ const InspectionDetails: React.FC = () => {
 
   const vistoria = id ? getVistoriaById(id) : null;
 
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     if (vistoria) {
-      generateInspectionPDF(vistoria);
+      try {
+        await generateInspectionPDF(vistoria);
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao gerar o PDF. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
