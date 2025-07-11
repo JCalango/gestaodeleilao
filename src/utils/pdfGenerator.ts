@@ -56,6 +56,9 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           margin: 0;
           padding: 0;
           box-sizing: border-box;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         body {
@@ -76,29 +79,40 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
         .header {
           background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%);
           color: white;
-          padding: 15px;
+          padding: 20px;
           margin-bottom: 20px;
           border-radius: 8px;
           position: relative;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .header-content {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          gap: 20px;
         }
         
         .header-left {
           flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 15px;
         }
         
         .header-right {
           text-align: right;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 10px;
         }
         
         .logo-container {
-          width: 60px;
-          height: 60px;
+          width: 80px;
+          height: 80px;
           background: white;
           border-radius: 8px;
           display: flex;
@@ -106,42 +120,52 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           justify-content: center;
           color: #1e40af;
           font-weight: bold;
-          margin-bottom: 10px;
           overflow: hidden;
+          flex-shrink: 0;
+          border: 2px solid #e5e7eb;
         }
         
         .logo-image {
           width: 100%;
           height: 100%;
           object-fit: contain;
-          border-radius: 8px;
+          border-radius: 6px;
         }
         
         .logo-text {
-          font-size: 10px;
+          font-size: 12px;
           font-weight: bold;
           text-align: center;
+          color: #1e40af;
+        }
+        
+        .header-text {
+          flex: 1;
         }
         
         .municipal-title {
           font-size: 18px;
           font-weight: bold;
           margin-bottom: 5px;
+          color: white;
         }
         
         .subtitle {
-          font-size: 11px;
-          opacity: 0.9;
+          font-size: 12px;
+          opacity: 0.95;
+          color: white;
         }
         
         .document-title {
           font-size: 16px;
           font-weight: bold;
+          color: white;
         }
         
         .date-info {
           font-size: 11px;
           margin-top: 5px;
+          color: white;
         }
         
         .section {
@@ -156,6 +180,9 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           font-size: 14px;
           margin-bottom: 0;
           border-radius: 8px 8px 0 0;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .section-content {
@@ -190,11 +217,12 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
         }
         
         .info-value {
-          background: #f3f4f6;
+          background: #f8fafc;
           padding: 8px;
           border-radius: 4px;
-          border: 1px solid #e5e7eb;
+          border: 1px solid #e2e8f0;
           font-size: 12px;
+          color: #334155;
         }
         
         .motor-chassi-section {
@@ -219,14 +247,21 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           padding: 8px 15px;
           font-weight: bold;
           margin: 0;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .subsection-title.chassi {
           background: #0891b2;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .subsection-content {
           padding: 15px;
+          background: white;
         }
         
         .condition-highlight {
@@ -235,12 +270,18 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           padding: 5px;
           background: #fef3c7;
           margin-top: 5px;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .restrictions-section {
           background: #fed7aa;
           border: 2px solid #ea580c;
           border-radius: 8px;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .restrictions-title {
@@ -249,6 +290,9 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           padding: 10px 15px;
           font-weight: bold;
           margin: 0;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .restrictions-grid {
@@ -263,6 +307,9 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           color: white;
           border-radius: 8px;
           margin-top: 20px;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .observations-title {
@@ -272,6 +319,9 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           font-weight: bold;
           margin: 0;
           border-radius: 8px 8px 0 0;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .observations-content {
@@ -286,6 +336,9 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           color: white;
           border-radius: 8px;
           margin-top: 20px;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .responsibility-title {
@@ -295,6 +348,9 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           font-weight: bold;
           margin: 0;
           border-radius: 8px 8px 0 0;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
         
         .responsibility-content {
@@ -324,6 +380,61 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
             margin: 0;
             padding: 10mm;
           }
+          
+          * {
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .header {
+            background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%) !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .section-title {
+            background: #3b82f6 !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .subsection-title {
+            background: #10b981 !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .subsection-title.chassi {
+            background: #0891b2 !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .restrictions-title {
+            background: #ea580c !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .observations-title {
+            background: #374151 !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .responsibility-title {
+            background: #6366f1 !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
         }
       </style>
     </head>
@@ -336,14 +447,16 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
               <div class="logo-container">
                 ${prefeituraLogo 
                   ? `<img src="${prefeituraLogo}" alt="Prefeitura" class="logo-image" />` 
-                  : '<div class="logo-text">GUANAMBI</div>'
+                  : '<div class="logo-text">PREFEITURA<br>GUANAMBI</div>'
                 }
               </div>
-              <div class="municipal-title">PREFEITURA MUNICIPAL DE GUANAMBI</div>
-              <div class="subtitle">SMTRAN - Superintendência Municipal de Trânsito</div>
+              <div class="header-text">
+                <div class="municipal-title">PREFEITURA MUNICIPAL DE GUANAMBI</div>
+                <div class="subtitle">SMTRAN - Superintendência Municipal de Trânsito</div>
+              </div>
             </div>
             <div class="header-right">
-              <div class="logo-container" style="margin-left: auto;">
+              <div class="logo-container">
                 ${smtranLogo 
                   ? `<img src="${smtranLogo}" alt="SMTRAN" class="logo-image" />` 
                   : '<div class="logo-text">SMTRAN</div>'
