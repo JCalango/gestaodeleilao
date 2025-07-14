@@ -136,14 +136,21 @@ export const useDamageCategories = (vehicleType: VehicleType) => {
     queryKey: ['damage-categories', vehicleType],
     queryFn: async (): Promise<DamageCategory[]> => {
       const { data, error } = await supabase
-        .from('damage_categories' as any)
+        .from('damage_categories')
         .select('*')
         .contains('vehicle_types', [vehicleType])
         .eq('is_active', true)
         .order('display_order');
 
       if (error) throw error;
-      return (data || []) as DamageCategory[];
+      return (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        vehicle_types: item.vehicle_types as VehicleType[],
+        display_order: item.display_order,
+        is_active: item.is_active
+      }));
     },
   });
 };
@@ -153,14 +160,24 @@ export const useDamageItems = (vehicleType: VehicleType) => {
     queryKey: ['damage-items', vehicleType],
     queryFn: async (): Promise<DamageItemDefinition[]> => {
       const { data, error } = await supabase
-        .from('damage_items' as any)
+        .from('damage_items')
         .select('*')
         .contains('vehicle_types', [vehicleType])
         .eq('is_active', true)
         .order('display_order');
 
       if (error) throw error;
-      return (data || []) as DamageItemDefinition[];
+      return (data || []).map(item => ({
+        id: item.id,
+        category_id: item.category_id,
+        name: item.name,
+        description: item.description,
+        vehicle_types: item.vehicle_types as VehicleType[],
+        requires_photo: item.requires_photo,
+        severity_levels: item.severity_levels as ('M' | 'G')[],
+        display_order: item.display_order,
+        is_active: item.is_active
+      }));
     },
   });
 };
@@ -170,7 +187,7 @@ export const useVehicleDamageAssessments = (vistoriaId?: string) => {
     queryKey: ['vehicle-damage-assessments', vistoriaId],
     queryFn: async (): Promise<VehicleDamageAssessment[]> => {
       let query = supabase
-        .from('vehicle_damage_assessments' as any)
+        .from('vehicle_damage_assessments')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -181,7 +198,24 @@ export const useVehicleDamageAssessments = (vistoriaId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return (data || []) as VehicleDamageAssessment[];
+      return (data || []).map(item => ({
+        id: item.id,
+        vistoria_id: item.vistoria_id,
+        vehicle_type: item.vehicle_type as VehicleType,
+        assessor_name: item.assessor_name,
+        assessor_registration: item.assessor_registration,
+        assessment_date: item.assessment_date,
+        vehicle_classification: item.vehicle_classification,
+        total_sim_count: item.total_sim_count,
+        total_nao_count: item.total_nao_count,
+        total_na_count: item.total_na_count,
+        observations: item.observations,
+        is_completed: item.is_completed,
+        created_by: item.created_by,
+        updated_by: item.updated_by,
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
     },
   });
 };
@@ -193,7 +227,7 @@ export const useCreateDamageAssessment = () => {
     mutationFn: async (data: DamageAssessmentFormData): Promise<VehicleDamageAssessment> => {
       const user = await supabase.auth.getUser();
       const { data: result, error } = await supabase
-        .from('vehicle_damage_assessments' as any)
+        .from('vehicle_damage_assessments')
         .insert({
           ...data,
           created_by: user.data.user?.id,
@@ -202,7 +236,24 @@ export const useCreateDamageAssessment = () => {
         .single();
 
       if (error) throw error;
-      return result as VehicleDamageAssessment;
+      return {
+        id: result.id,
+        vistoria_id: result.vistoria_id,
+        vehicle_type: result.vehicle_type as VehicleType,
+        assessor_name: result.assessor_name,
+        assessor_registration: result.assessor_registration,
+        assessment_date: result.assessment_date,
+        vehicle_classification: result.vehicle_classification,
+        total_sim_count: result.total_sim_count,
+        total_nao_count: result.total_nao_count,
+        total_na_count: result.total_na_count,
+        observations: result.observations,
+        is_completed: result.is_completed,
+        created_by: result.created_by,
+        updated_by: result.updated_by,
+        created_at: result.created_at,
+        updated_at: result.updated_at
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-damage-assessments'] });
@@ -229,7 +280,7 @@ export const useUpdateDamageAssessment = () => {
     mutationFn: async ({ id, data }: { id: string; data: Partial<DamageAssessmentFormData> }): Promise<VehicleDamageAssessment> => {
       const user = await supabase.auth.getUser();
       const { data: result, error } = await supabase
-        .from('vehicle_damage_assessments' as any)
+        .from('vehicle_damage_assessments')
         .update({
           ...data,
           updated_by: user.data.user?.id,
@@ -240,7 +291,24 @@ export const useUpdateDamageAssessment = () => {
         .single();
 
       if (error) throw error;
-      return result as VehicleDamageAssessment;
+      return {
+        id: result.id,
+        vistoria_id: result.vistoria_id,
+        vehicle_type: result.vehicle_type as VehicleType,
+        assessor_name: result.assessor_name,
+        assessor_registration: result.assessor_registration,
+        assessment_date: result.assessment_date,
+        vehicle_classification: result.vehicle_classification,
+        total_sim_count: result.total_sim_count,
+        total_nao_count: result.total_nao_count,
+        total_na_count: result.total_na_count,
+        observations: result.observations,
+        is_completed: result.is_completed,
+        created_by: result.created_by,
+        updated_by: result.updated_by,
+        created_at: result.created_at,
+        updated_at: result.updated_at
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-damage-assessments'] });
@@ -266,7 +334,7 @@ export const useDeleteDamageAssessment = () => {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       const { error } = await supabase
-        .from('vehicle_damage_assessments' as any)
+        .from('vehicle_damage_assessments')
         .delete()
         .eq('id', id);
 
@@ -303,13 +371,13 @@ export const useCreateAssessmentItem = () => {
     }): Promise<void> => {
       // First, delete existing items for this assessment
       await supabase
-        .from('damage_assessment_items' as any)
+        .from('damage_assessment_items')
         .delete()
         .eq('assessment_id', assessmentId);
 
       // Then insert new items
       const { error } = await supabase
-        .from('damage_assessment_items' as any)
+        .from('damage_assessment_items')
         .insert(
           items.map(item => ({
             assessment_id: assessmentId,
