@@ -136,14 +136,14 @@ export const useDamageCategories = (vehicleType: VehicleType) => {
     queryKey: ['damage-categories', vehicleType],
     queryFn: async (): Promise<DamageCategory[]> => {
       const { data, error } = await supabase
-        .from('damage_categories')
+        .from('damage_categories' as any)
         .select('*')
         .contains('vehicle_types', [vehicleType])
         .eq('is_active', true)
         .order('display_order');
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as DamageCategory[];
     },
   });
 };
@@ -153,14 +153,14 @@ export const useDamageItems = (vehicleType: VehicleType) => {
     queryKey: ['damage-items', vehicleType],
     queryFn: async (): Promise<DamageItemDefinition[]> => {
       const { data, error } = await supabase
-        .from('damage_items')
+        .from('damage_items' as any)
         .select('*')
         .contains('vehicle_types', [vehicleType])
         .eq('is_active', true)
         .order('display_order');
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as DamageItemDefinition[];
     },
   });
 };
@@ -170,7 +170,7 @@ export const useVehicleDamageAssessments = (vistoriaId?: string) => {
     queryKey: ['vehicle-damage-assessments', vistoriaId],
     queryFn: async (): Promise<VehicleDamageAssessment[]> => {
       let query = supabase
-        .from('vehicle_damage_assessments')
+        .from('vehicle_damage_assessments' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -181,7 +181,7 @@ export const useVehicleDamageAssessments = (vistoriaId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as VehicleDamageAssessment[];
     },
   });
 };
@@ -191,17 +191,18 @@ export const useCreateDamageAssessment = () => {
 
   return useMutation({
     mutationFn: async (data: DamageAssessmentFormData): Promise<VehicleDamageAssessment> => {
+      const user = await supabase.auth.getUser();
       const { data: result, error } = await supabase
-        .from('vehicle_damage_assessments')
+        .from('vehicle_damage_assessments' as any)
         .insert({
           ...data,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+          created_by: user.data.user?.id,
         })
         .select()
         .single();
 
       if (error) throw error;
-      return result;
+      return result as VehicleDamageAssessment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-damage-assessments'] });
@@ -226,11 +227,12 @@ export const useUpdateDamageAssessment = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<DamageAssessmentFormData> }): Promise<VehicleDamageAssessment> => {
+      const user = await supabase.auth.getUser();
       const { data: result, error } = await supabase
-        .from('vehicle_damage_assessments')
+        .from('vehicle_damage_assessments' as any)
         .update({
           ...data,
-          updated_by: (await supabase.auth.getUser()).data.user?.id,
+          updated_by: user.data.user?.id,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -238,7 +240,7 @@ export const useUpdateDamageAssessment = () => {
         .single();
 
       if (error) throw error;
-      return result;
+      return result as VehicleDamageAssessment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vehicle-damage-assessments'] });
@@ -264,7 +266,7 @@ export const useDeleteDamageAssessment = () => {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       const { error } = await supabase
-        .from('vehicle_damage_assessments')
+        .from('vehicle_damage_assessments' as any)
         .delete()
         .eq('id', id);
 
@@ -301,13 +303,13 @@ export const useCreateAssessmentItem = () => {
     }): Promise<void> => {
       // First, delete existing items for this assessment
       await supabase
-        .from('damage_assessment_items')
+        .from('damage_assessment_items' as any)
         .delete()
         .eq('assessment_id', assessmentId);
 
       // Then insert new items
       const { error } = await supabase
-        .from('damage_assessment_items')
+        .from('damage_assessment_items' as any)
         .insert(
           items.map(item => ({
             assessment_id: assessmentId,

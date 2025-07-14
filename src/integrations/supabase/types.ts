@@ -206,6 +206,143 @@ export type Database = {
         }
         Relationships: []
       }
+      damage_assessment_items: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          damage_item_id: string
+          estimated_cost: number | null
+          id: string
+          notes: string | null
+          requires_repair: boolean
+          severity: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          damage_item_id: string
+          estimated_cost?: number | null
+          id?: string
+          notes?: string | null
+          requires_repair?: boolean
+          severity?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          damage_item_id?: string
+          estimated_cost?: number | null
+          id?: string
+          notes?: string | null
+          requires_repair?: boolean
+          severity?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damage_assessment_items_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_damage_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_assessment_items_damage_item_id_fkey"
+            columns: ["damage_item_id"]
+            isOneToOne: false
+            referencedRelation: "damage_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      damage_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          vehicle_types: string[]
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          vehicle_types?: string[]
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          vehicle_types?: string[]
+        }
+        Relationships: []
+      }
+      damage_items: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          requires_photo: boolean
+          severity_levels: string[]
+          updated_at: string
+          vehicle_types: string[]
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          requires_photo?: boolean
+          severity_levels?: string[]
+          updated_at?: string
+          vehicle_types?: string[]
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          requires_photo?: boolean
+          severity_levels?: string[]
+          updated_at?: string
+          vehicle_types?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damage_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "damage_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Inspec_veícul: {
         Row: {
           alienacao_fid: string | null
@@ -677,6 +814,63 @@ export type Database = {
           id?: string
           metadata?: Json | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      vehicle_damage_assessments: {
+        Row: {
+          assessment_date: string
+          assessor_name: string | null
+          assessor_registration: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_completed: boolean
+          observations: string | null
+          total_na_count: number
+          total_nao_count: number
+          total_sim_count: number
+          updated_at: string
+          updated_by: string | null
+          vehicle_classification: string | null
+          vehicle_type: string
+          vistoria_id: string
+        }
+        Insert: {
+          assessment_date?: string
+          assessor_name?: string | null
+          assessor_registration?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_completed?: boolean
+          observations?: string | null
+          total_na_count?: number
+          total_nao_count?: number
+          total_sim_count?: number
+          updated_at?: string
+          updated_by?: string | null
+          vehicle_classification?: string | null
+          vehicle_type: string
+          vistoria_id: string
+        }
+        Update: {
+          assessment_date?: string
+          assessor_name?: string | null
+          assessor_registration?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_completed?: boolean
+          observations?: string | null
+          total_na_count?: number
+          total_nao_count?: number
+          total_sim_count?: number
+          updated_at?: string
+          updated_by?: string | null
+          vehicle_classification?: string | null
+          vehicle_type?: string
+          vistoria_id?: string
         }
         Relationships: []
       }
