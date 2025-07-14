@@ -29,6 +29,52 @@ const getSystemLogos = async () => {
   }
 };
 
+const getVistoriaPhotos = async (vistoriaId: string) => {
+  try {
+    console.log('Fetching photos for vistoria:', vistoriaId);
+    
+    // Buscar URLs das fotos na tabela de vistorias
+    const { data: vistoria, error } = await supabase
+      .from('vistorias')
+      .select('fotos_frente, fotos_lateral_esquerda, fotos_lateral_direita, fotos_chassi, fotos_traseira, fotos_motor')
+      .eq('id', vistoriaId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching vistoria photos:', error);
+      return {
+        fotos_frente: [],
+        fotos_lateral_esquerda: [],
+        fotos_lateral_direita: [],
+        fotos_chassi: [],
+        fotos_traseira: [],
+        fotos_motor: []
+      };
+    }
+
+    console.log('Vistoria photos found:', vistoria);
+
+    return {
+      fotos_frente: vistoria?.fotos_frente || [],
+      fotos_lateral_esquerda: vistoria?.fotos_lateral_esquerda || [],
+      fotos_lateral_direita: vistoria?.fotos_lateral_direita || [],
+      fotos_chassi: vistoria?.fotos_chassi || [],
+      fotos_traseira: vistoria?.fotos_traseira || [],
+      fotos_motor: vistoria?.fotos_motor || []
+    };
+  } catch (error) {
+    console.error('Error fetching vistoria photos:', error);
+    return {
+      fotos_frente: [],
+      fotos_lateral_esquerda: [],
+      fotos_lateral_direita: [],
+      fotos_chassi: [],
+      fotos_traseira: [],
+      fotos_motor: []
+    };
+  }
+};
+
 const preloadImage = (url: string): Promise<boolean> => {
   return new Promise((resolve) => {
     const img = new Image();
@@ -45,11 +91,46 @@ const preloadImage = (url: string): Promise<boolean> => {
   });
 };
 
+const generatePhotoSection = (category: string, photos: string[], categoryTitle: string) => {
+  if (!photos || photos.length === 0) {
+    return `
+      <div class="photo-section">
+        <div class="photo-section-title">${categoryTitle}</div>
+        <div class="photo-section-content">
+          <div class="no-photo-message">
+            <p>Foto não disponível para ${categoryTitle.toLowerCase()}</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const photoElements = photos.map(photo => `
+    <div class="photo-item">
+      <img src="${photo}" alt="${categoryTitle}" class="photo-image" crossorigin="anonymous" />
+    </div>
+  `).join('');
+
+  return `
+    <div class="photo-section">
+      <div class="photo-section-title">${categoryTitle}</div>
+      <div class="photo-section-content">
+        <div class="photo-grid">
+          ${photoElements}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
 export const generateInspectionPDF = async (vistoria: Vistoria) => {
   console.log('Starting PDF generation for vistoria:', vistoria.placa);
   
   // Buscar logos do sistema
   const { prefeituraLogo, smtranLogo } = await getSystemLogos();
+  
+  // Buscar fotos da vistoria
+  const photos = await getVistoriaPhotos(vistoria.id);
   
   // Pre-carregar as imagens se existirem
   const logoPromises = [];
@@ -62,11 +143,27 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
     logoPromises.push(preloadImage(smtranLogo));
   }
   
+  // Pre-carregar fotos da vistoria
+  const photoPromises = [];
+  Object.values(photos).forEach(photoArray => {
+    photoArray.forEach(photoUrl => {
+      if (photoUrl) {
+        photoPromises.push(preloadImage(photoUrl));
+      }
+    });
+  });
+  
   // Aguardar o carregamento das imagens
   if (logoPromises.length > 0) {
     console.log('Waiting for logos to load...');
     await Promise.all(logoPromises);
     console.log('All logos loaded');
+  }
+  
+  if (photoPromises.length > 0) {
+    console.log('Waiting for photos to load...');
+    await Promise.all(photoPromises);
+    console.log('All photos loaded');
   }
   
   // Criar nova janela para o PDF
@@ -417,6 +514,58 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           border-radius: 8px;
         }
         
+        .photo-section {
+          margin-bottom: 20px;
+          border: 2px solid #8b5cf6;
+          border-radius: 8px;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        .photo-section-title {
+          background: #8b5cf6;
+          color: white;
+          padding: 10px 15px;
+          font-weight: bold;
+          margin: 0;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        .photo-section-content {
+          padding: 15px;
+          background: white;
+        }
+        
+        .photo-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 15px;
+        }
+        
+        .photo-item {
+          text-align: center;
+        }
+        
+        .photo-image {
+          max-width: 100%;
+          max-height: 200px;
+          object-fit: contain;
+          border: 1px solid #e5e7eb;
+          border-radius: 4px;
+        }
+        
+        .no-photo-message {
+          text-align: center;
+          padding: 20px;
+          background: #f3f4f6;
+          border-radius: 4px;
+          color: #6b7280;
+          font-style: italic;
+        }
+        
         @media print {
           .page {
             margin: 0;
@@ -476,6 +625,17 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          
+          .photo-section-title {
+            background: #8b5cf6 !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .photo-image {
+            max-height: 150px;
           }
         }
       </style>
@@ -646,6 +806,19 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           </div>
         </div>
 
+        <!-- Seção de Fotos -->
+        <div class="section">
+          <div class="section-title">DOCUMENTAÇÃO FOTOGRÁFICA</div>
+          <div class="section-content">
+            ${generatePhotoSection('frente', photos.fotos_frente, 'Frente')}
+            ${generatePhotoSection('lateral_esquerda', photos.fotos_lateral_esquerda, 'Lateral Esquerda')}
+            ${generatePhotoSection('lateral_direita', photos.fotos_lateral_direita, 'Lateral Direita')}
+            ${generatePhotoSection('traseira', photos.fotos_traseira, 'Traseira')}
+            ${generatePhotoSection('motor', photos.fotos_motor, 'Motor')}
+            ${generatePhotoSection('chassi', photos.fotos_chassi, 'Chassi')}
+          </div>
+        </div>
+
         ${vistoria.observacoes ? `
         <!-- Observações -->
         <div class="observations-section">
@@ -697,6 +870,6 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
     console.log('Print window loaded, starting print...');
     setTimeout(() => {
       printWindow.print();
-    }, 1000); // Aumentei o delay para garantir que as imagens carreguem
+    }, 1500); // Aumentei o delay para garantir que todas as imagens carreguem
   };
 };
