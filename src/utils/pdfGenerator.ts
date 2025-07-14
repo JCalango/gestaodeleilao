@@ -1,4 +1,3 @@
-
 import { Vistoria } from '@/types/vistoria';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -874,15 +873,9 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
         <div class="section">
           <div class="section-title">CONTROLE</div>
           <div class="section-content">
-            <div class="info-grid two-cols">
-              <div class="info-item">
-                <div class="info-label">NÚMERO DE CONTROLE</div>
-                <div class="info-value">${vistoria.numero_controle || 'N/A'}</div>
-              </div>
-              <div class="info-item">
-                <div class="info-label">NÚMERO DO LOTE</div>
-                <div class="info-value">${vistoria.numero_controle || 'N/A'}</div>
-              </div>
+            <div class="info-item">
+              <div class="info-label">NÚMERO DO LOTE</div>
+              <div class="info-value">${vistoria.numero_controle || 'N/A'}</div>
             </div>
           </div>
         </div>
