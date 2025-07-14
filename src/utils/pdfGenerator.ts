@@ -123,6 +123,71 @@ const generatePhotoSection = (category: string, photos: string[], categoryTitle:
   `;
 };
 
+const generatePhotoGrid = (photos: any) => {
+  const photoCategories = [
+    { key: 'fotos_frente', title: 'Frente' },
+    { key: 'fotos_lateral_esquerda', title: 'Lateral Esquerda' },
+    { key: 'fotos_lateral_direita', title: 'Lateral Direita' },
+    { key: 'fotos_traseira', title: 'Traseira' },
+    { key: 'fotos_motor', title: 'Motor' },
+    { key: 'fotos_chassi', title: 'Chassi' }
+  ];
+
+  // Criar array com todas as fotos disponíveis
+  const allPhotos = [];
+  photoCategories.forEach(category => {
+    const categoryPhotos = photos[category.key] || [];
+    categoryPhotos.forEach(photo => {
+      allPhotos.push({
+        url: photo,
+        title: category.title
+      });
+    });
+  });
+
+  if (allPhotos.length === 0) {
+    return `
+      <div class="photo-section">
+        <div class="photo-section-title">Documentação Fotográfica</div>
+        <div class="photo-section-content">
+          <div class="no-photo-message">
+            <p>Nenhuma foto disponível para esta vistoria</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Organizar em grid de 2 colunas
+  const photosPerRow = 2;
+  let gridHtml = '';
+  
+  for (let i = 0; i < allPhotos.length; i += photosPerRow) {
+    const rowPhotos = allPhotos.slice(i, i + photosPerRow);
+    gridHtml += `
+      <div class="photo-row">
+        ${rowPhotos.map(photo => `
+          <div class="photo-item-large">
+            <div class="photo-label">${photo.title}</div>
+            <img src="${photo.url}" alt="${photo.title}" class="photo-image-large" crossorigin="anonymous" />
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  return `
+    <div class="photo-section">
+      <div class="photo-section-title">Documentação Fotográfica</div>
+      <div class="photo-section-content">
+        <div class="photo-grid-container">
+          ${gridHtml}
+        </div>
+      </div>
+    </div>
+  `;
+};
+
 export const generateInspectionPDF = async (vistoria: Vistoria) => {
   console.log('Starting PDF generation for vistoria:', vistoria.placa);
   
@@ -539,6 +604,45 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           background: white;
         }
         
+        .photo-grid-container {
+          width: 100%;
+        }
+        
+        .photo-row {
+          display: flex;
+          gap: 20px;
+          margin-bottom: 20px;
+          align-items: flex-start;
+        }
+        
+        .photo-item-large {
+          flex: 1;
+          text-align: center;
+          min-width: 0;
+        }
+        
+        .photo-label {
+          font-weight: bold;
+          color: #4c51bf;
+          margin-bottom: 8px;
+          font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        
+        .photo-image-large {
+          width: 100%;
+          max-width: 350px;
+          height: auto;
+          min-height: 250px;
+          max-height: 300px;
+          object-fit: contain;
+          border: 2px solid #e5e7eb;
+          border-radius: 8px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          background: #f8fafc;
+        }
+        
         .photo-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -559,11 +663,12 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
         
         .no-photo-message {
           text-align: center;
-          padding: 20px;
+          padding: 40px 20px;
           background: #f3f4f6;
-          border-radius: 4px;
+          border-radius: 8px;
           color: #6b7280;
           font-style: italic;
+          font-size: 16px;
         }
         
         @media print {
@@ -634,8 +739,13 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
             print-color-adjust: exact !important;
           }
           
-          .photo-image {
-            max-height: 150px;
+          .photo-image-large {
+            max-height: 250px;
+          }
+          
+          .photo-row {
+            break-inside: avoid;
+            page-break-inside: avoid;
           }
         }
       </style>
@@ -806,18 +916,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           </div>
         </div>
 
-        <!-- Seção de Fotos -->
-        <div class="section">
-          <div class="section-title">DOCUMENTAÇÃO FOTOGRÁFICA</div>
-          <div class="section-content">
-            ${generatePhotoSection('frente', photos.fotos_frente, 'Frente')}
-            ${generatePhotoSection('lateral_esquerda', photos.fotos_lateral_esquerda, 'Lateral Esquerda')}
-            ${generatePhotoSection('lateral_direita', photos.fotos_lateral_direita, 'Lateral Direita')}
-            ${generatePhotoSection('traseira', photos.fotos_traseira, 'Traseira')}
-            ${generatePhotoSection('motor', photos.fotos_motor, 'Motor')}
-            ${generatePhotoSection('chassi', photos.fotos_chassi, 'Chassi')}
-          </div>
-        </div>
+        <!-- Seção de Fotos com Grid Layout -->
+        ${generatePhotoGrid(photos)}
 
         ${vistoria.observacoes ? `
         <!-- Observações -->
