@@ -501,7 +501,7 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
         
         .restrictions-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
+          grid-template-columns: 1fr 1fr;
           gap: 15px;
           padding: 15px;
         }
@@ -671,6 +671,82 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           font-size: 16px;
         }
         
+        .people-info-section {
+          background: #f0f9ff;
+          border: 2px solid #0284c7;
+          border-radius: 8px;
+          margin-top: 20px;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        .people-info-title {
+          background: #0284c7;
+          color: white;
+          padding: 10px 15px;
+          font-weight: bold;
+          margin: 0;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        .people-info-content {
+          padding: 15px;
+          background: white;
+          color: #333;
+        }
+        
+        .person-section {
+          margin-bottom: 20px;
+          padding: 10px;
+          background: #f8fafc;
+          border-radius: 6px;
+          border-left: 4px solid #0284c7;
+        }
+        
+        .person-title {
+          font-weight: bold;
+          color: #0284c7;
+          margin-bottom: 8px;
+          font-size: 13px;
+          text-transform: uppercase;
+        }
+        
+        .person-info {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        
+        .debts-section {
+          background: #fef3c7;
+          border: 2px solid #f59e0b;
+          border-radius: 8px;
+          margin-top: 20px;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        .debts-title {
+          background: #f59e0b;
+          color: white;
+          padding: 10px 15px;
+          font-weight: bold;
+          margin: 0;
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        .debts-content {
+          padding: 15px;
+          background: white;
+          color: #333;
+        }
+        
         @media print {
           .page {
             margin: 0;
@@ -739,6 +815,20 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
             print-color-adjust: exact !important;
           }
           
+          .people-info-title {
+            background: #0284c7 !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
+          .debts-title {
+            background: #f59e0b !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          
           .photo-image-large {
             max-height: 250px;
           }
@@ -776,6 +866,23 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
               </div>
               <div class="document-title">LAUDO DE VISTORIA VEICULAR</div>
               <div class="date-info">Data: ${currentDate}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controle -->
+        <div class="section">
+          <div class="section-title">CONTROLE</div>
+          <div class="section-content">
+            <div class="info-grid two-cols">
+              <div class="info-item">
+                <div class="info-label">NÚMERO DE CONTROLE</div>
+                <div class="info-value">${vistoria.numero_controle || 'N/A'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">NÚMERO DO LOTE</div>
+                <div class="info-value">${vistoria.numero_controle || 'N/A'}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -890,10 +997,6 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           <div class="restrictions-title">CONDIÇÕES E RESTRIÇÕES</div>
           <div class="restrictions-grid">
             <div class="info-item">
-              <div class="info-label">DANO/REPARO EIXO TRASEIRO?</div>
-              <div class="info-value">NÃO</div>
-            </div>
-            <div class="info-item">
               <div class="info-label">PLACA NOVO PADRÃO?</div>
               <div class="info-value">${vistoria.placa && vistoria.placa.length === 7 ? 'SIM' : 'NÃO'}</div>
             </div>
@@ -910,9 +1013,154 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
               <div class="info-value">${vistoria.restricao_administrativa ? 'SIM' : 'NÃO'}</div>
             </div>
             <div class="info-item">
+              <div class="info-label">ALIENAÇÃO FIDUCIÁRIA?</div>
+              <div class="info-value">${vistoria.alienacao_fiduciaria ? 'SIM' : 'NÃO'}</div>
+            </div>
+            <div class="info-item">
               <div class="info-label">VEÍCULO POSSUI HISTÓRICO DE LEILÃO?</div>
               <div class="info-value">NÃO</div>
             </div>
+          </div>
+        </div>
+
+        <!-- Informações das Pessoas -->
+        <div class="people-info-section">
+          <div class="people-info-title">INFORMAÇÕES DAS PESSOAS</div>
+          <div class="people-info-content">
+            <!-- Proprietário -->
+            <div class="person-section">
+              <div class="person-title">PROPRIETÁRIO</div>
+              <div class="person-info">
+                <div class="info-item">
+                  <div class="info-label">NOME</div>
+                  <div class="info-value">${vistoria.nome_proprietario || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">CPF/CNPJ</div>
+                  <div class="info-value">${vistoria.cpf_cnpj_proprietario || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">ENDEREÇO</div>
+                  <div class="info-value">
+                    ${[
+                      vistoria.endereco_proprietario,
+                      vistoria.numero_casa_proprietario,
+                      vistoria.complemento_proprietario,
+                      vistoria.bairro_proprietario,
+                      vistoria.cidade_proprietario,
+                      vistoria.cep_proprietario
+                    ].filter(Boolean).join(', ') || 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Possuidor -->
+            ${vistoria.nome_possuidor || vistoria.cpf_cnpj_possuidor ? `
+            <div class="person-section">
+              <div class="person-title">POSSUIDOR</div>
+              <div class="person-info">
+                <div class="info-item">
+                  <div class="info-label">NOME</div>
+                  <div class="info-value">${vistoria.nome_possuidor || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">CPF/CNPJ</div>
+                  <div class="info-value">${vistoria.cpf_cnpj_possuidor || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">ENDEREÇO</div>
+                  <div class="info-value">
+                    ${[
+                      vistoria.endereco_possuidor,
+                      vistoria.bairro_possuidor,
+                      vistoria.cidade_possuidor,
+                      vistoria.cep_possuidor
+                    ].filter(Boolean).join(', ') || 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            ` : ''}
+
+            <!-- Financeira -->
+            ${vistoria.nome_financeira || vistoria.cnpj_financeira ? `
+            <div class="person-section">
+              <div class="person-title">FINANCEIRA</div>
+              <div class="person-info">
+                <div class="info-item">
+                  <div class="info-label">NOME</div>
+                  <div class="info-value">${vistoria.nome_financeira || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">CNPJ</div>
+                  <div class="info-value">${vistoria.cnpj_financeira || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">ENDEREÇO</div>
+                  <div class="info-value">
+                    ${[
+                      vistoria.endereco_financeira,
+                      vistoria.numero_endereco_financeira,
+                      vistoria.complemento_financeira,
+                      vistoria.bairro_financeira,
+                      vistoria.cidade_financeira,
+                      vistoria.cep_financeira
+                    ].filter(Boolean).join(', ') || 'N/A'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Informações de Débitos -->
+        <div class="debts-section">
+          <div class="debts-title">INFORMAÇÕES DE DÉBITOS</div>
+          <div class="debts-content">
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">IPVA</div>
+                <div class="info-value">${vistoria.ipva || 'N/A'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">LICENCIAMENTO</div>
+                <div class="info-value">${vistoria.licenciamento || 'N/A'}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">INFRAÇÕES DE TRÂNSITO</div>
+                <div class="info-value">${vistoria.infracoes_transito || 'N/A'}</div>
+              </div>
+            </div>
+            
+            <div class="info-grid two-cols">
+              <div class="info-item">
+                <div class="info-label">DATA ENTRADA PÁTIO</div>
+                <div class="info-value">
+                  ${vistoria.data_entrada_patio 
+                    ? new Date(vistoria.data_entrada_patio).toLocaleDateString('pt-BR')
+                    : 'N/A'
+                  }
+                </div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">DÉBITO PÁTIO</div>
+                <div class="info-value">
+                  ${vistoria.debito_patio 
+                    ? `R$ ${Number(vistoria.debito_patio).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                    : 'N/A'
+                  }
+                </div>
+              </div>
+            </div>
+            
+            ${vistoria.dados_remocao ? `
+            <div class="info-item">
+              <div class="info-label">DADOS DE REMOÇÃO</div>
+              <div class="info-value">${vistoria.dados_remocao}</div>
+            </div>
+            ` : ''}
           </div>
         </div>
 
