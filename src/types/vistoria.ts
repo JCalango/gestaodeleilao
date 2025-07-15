@@ -20,6 +20,7 @@ export interface Vistoria {
   uf?: string;
   tipo_combustivel?: string;
   categoria?: string;
+  tipo_veiculo?: string; // Added new field
   numero_motor?: string;
   condicao_motor?: string;
   numero_chassi?: string;

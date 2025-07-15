@@ -7,6 +7,8 @@ import { Plus, Car, Users, FileText, AlertCircle } from 'lucide-react';
 import { useVistorias } from '@/contexts/VistoriaContext';
 import StatCard from '@/components/Dashboard/StatCard';
 import RecentInspections from '@/components/Dashboard/RecentInspections';
+import RestrictionStatsCard from '@/components/Dashboard/RestrictionStatsCard';
+import VehicleStatsCard from '@/components/Dashboard/VehicleStatsCard';
 
 const Dashboard: React.FC = () => {
   const { vistorias, isLoading } = useVistorias();
@@ -16,6 +18,9 @@ const Dashboard: React.FC = () => {
     v.restricao_judicial || v.restricao_administrativa || v.furto_roubo
   ).length;
   const vistoriasRecentes = vistorias.slice(0, 5);
+
+  // Mock active users count - in a real app, this would come from user activity data
+  const activeUsers = 15;
 
   return (
     <div className="space-y-6">
@@ -46,6 +51,7 @@ const Dashboard: React.FC = () => {
           value={vistoriasComRestricao}
           icon={AlertCircle}
           trend={{ value: 3, isPositive: false }}
+          color="red"
         />
         
         <StatCard
@@ -58,13 +64,15 @@ const Dashboard: React.FC = () => {
           }).length}
           icon={FileText}
           trend={{ value: 8, isPositive: true }}
+          color="green"
         />
         
         <StatCard
           title="Usuários Ativos"
-          value={15}
+          value={activeUsers}
           icon={Users}
           trend={{ value: 2, isPositive: true }}
+          color="blue"
         />
       </div>
 
@@ -74,57 +82,62 @@ const Dashboard: React.FC = () => {
         </div>
         
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Ações Rápidas</CardTitle>
-              <CardDescription>Acesso rápido às funcionalidades</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Link to="/inspections/new" className="block">
-                <Button variant="outline" className="w-full justify-start">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nova Vistoria
-                </Button>
-              </Link>
-              
-              <Link to="/inspections" className="block">
-                <Button variant="outline" className="w-full justify-start">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Ver Todas as Vistorias
-                </Button>
-              </Link>
-              
-              <Link to="/users" className="block">
-                <Button variant="outline" className="w-full justify-start">
-                  <Users className="w-4 h-4 mr-2" />
-                  Gerenciar Usuários
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Estatísticas do Sistema</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">Taxa de Conclusão</span>
-                <span className="font-semibold">94%</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">Tempo Médio</span>
-                <span className="font-semibold">12 min</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-slate-600">Satisfação</span>
-                <span className="font-semibold">4.8/5</span>
-              </div>
-            </CardContent>
-          </Card>
+          <RestrictionStatsCard vistorias={vistorias} />
+          <VehicleStatsCard vistorias={vistorias} />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Ações Rápidas</CardTitle>
+            <CardDescription>Acesso rápido às funcionalidades</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Link to="/inspections/new" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Plus className="w-4 h-4 mr-2" />
+                Nova Vistoria
+              </Button>
+            </Link>
+            
+            <Link to="/inspections" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <FileText className="w-4 h-4 mr-2" />
+                Ver Todas as Vistorias
+              </Button>
+            </Link>
+            
+            <Link to="/users" className="block">
+              <Button variant="outline" className="w-full justify-start">
+                <Users className="w-4 h-4 mr-2" />
+                Gerenciar Usuários
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Estatísticas do Sistema</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-slate-600">Taxa de Conclusão</span>
+              <span className="font-semibold">94%</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-slate-600">Tempo Médio</span>
+              <span className="font-semibold">12 min</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-slate-600">Satisfação</span>
+              <span className="font-semibold">4.8/5</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

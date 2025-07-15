@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Calendar, MapPin } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Vistoria } from '@/types/vistoria';
 
 interface RecentInspectionsProps {
@@ -13,6 +13,8 @@ interface RecentInspectionsProps {
 }
 
 const RecentInspections: React.FC<RecentInspectionsProps> = ({ inspections, isLoading }) => {
+  const navigate = useNavigate();
+
   if (isLoading) {
     return (
       <Card>
@@ -34,6 +36,10 @@ const RecentInspections: React.FC<RecentInspectionsProps> = ({ inspections, isLo
     );
   }
 
+  const handleVistoriaClick = (vistoriaId: string) => {
+    navigate(`/inspections/${vistoriaId}`);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -51,7 +57,11 @@ const RecentInspections: React.FC<RecentInspectionsProps> = ({ inspections, isLo
             </div>
           ) : (
             inspections.map((inspection) => (
-              <div key={inspection.id} className="border rounded-lg p-4 hover:bg-slate-50 transition-colors">
+              <div 
+                key={inspection.id} 
+                className="border rounded-lg p-4 hover:bg-slate-50 transition-colors cursor-pointer"
+                onClick={() => handleVistoriaClick(inspection.id)}
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -71,6 +81,9 @@ const RecentInspections: React.FC<RecentInspectionsProps> = ({ inspections, isLo
                     
                     <p className="text-sm text-slate-600 mb-1">
                       {inspection.marca} {inspection.modelo} - {inspection.cor}
+                      {inspection.tipo_veiculo && (
+                        <span className="text-slate-500"> • {inspection.tipo_veiculo}</span>
+                      )}
                     </p>
                     
                     <div className="flex items-center gap-4 text-xs text-slate-500">
@@ -82,14 +95,23 @@ const RecentInspections: React.FC<RecentInspectionsProps> = ({ inspections, isLo
                         }
                       </div>
                       
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {inspection.municipio}, {inspection.uf}
-                      </div>
+                      {(inspection.municipio || inspection.uf) && (
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {inspection.municipio}, {inspection.uf}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleVistoriaClick(inspection.id);
+                    }}
+                  >
                     <Eye className="w-4 h-4" />
                   </Button>
                 </div>

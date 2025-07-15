@@ -937,6 +937,7 @@ export type Database = {
           restricao_administrativa: boolean | null
           restricao_judicial: boolean | null
           tipo_combustivel: string | null
+          tipo_veiculo: string | null
           uf: string | null
           updated_at: string | null
           updated_by: string | null
@@ -1003,6 +1004,7 @@ export type Database = {
           restricao_administrativa?: boolean | null
           restricao_judicial?: boolean | null
           tipo_combustivel?: string | null
+          tipo_veiculo?: string | null
           uf?: string | null
           updated_at?: string | null
           updated_by?: string | null
@@ -1069,6 +1071,7 @@ export type Database = {
           restricao_administrativa?: boolean | null
           restricao_judicial?: boolean | null
           tipo_combustivel?: string | null
+          tipo_veiculo?: string | null
           uf?: string | null
           updated_at?: string | null
           updated_by?: string | null
