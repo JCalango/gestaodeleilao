@@ -1,245 +1,195 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Upload, X, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Camera, Upload, X, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 interface PhotoUploadSectionProps {
-  onPhotosChange?: (photos: Record<string, string[]>) => void;
+  onPhotosChange: (photos: Record<string, string[]>) => void;
+  initialPhotos?: Record<string, string[]>;
 }
 
-const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ onPhotosChange }) => {
-  const { user } = useAuth();
+interface PhotoSection {
+  key: string;
+  label: string;
+  description: string;
+}
+
+const photoSections: PhotoSection[] = [
+  { key: 'frente', label: 'Frente do Veículo', description: 'Foto frontal do veículo' },
+  { key: 'lateral_esquerda', label: 'Lateral Esquerda', description: 'Foto da lateral esquerda' },
+  { key: 'lateral_direita', label: 'Lateral Direita', description: 'Foto da lateral direita' },
+  { key: 'chassi', label: 'Chassi', description: 'Foto do número do chassi' },
+  { key: 'traseira', label: 'Traseira do Veículo', description: 'Foto traseira do veículo' },
+  { key: 'motor', label: 'Motor', description: 'Foto do motor do veículo' }
+];
+
+const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({ 
+  onPhotosChange, 
+  initialPhotos = {} 
+}) => {
+  const [photos, setPhotos] = useState<Record<string, string[]>>(initialPhotos);
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
-  const [uploadedPhotos, setUploadedPhotos] = useState<Record<string, string[]>>({
-    frente: [],
-    lateral_esquerda: [],
-    lateral_direita: [],
-    chassi: [],
-    traseira: [],
-    motor: []
-  });
 
-  const photoCategories = [
-    { key: 'frente', label: 'Fotos da Frente' },
-    { key: 'lateral_esquerda', label: 'Fotos Lateral Esquerda' },
-    { key: 'lateral_direita', label: 'Fotos Lateral Direita' },
-    { key: 'chassi', label: 'Fotos do Chassi' },
-    { key: 'traseira', label: 'Fotos da Traseira' },
-    { key: 'motor', label: 'Fotos do Motor' }
-  ];
+  useEffect(() => {
+    setPhotos(initialPhotos);
+  }, [initialPhotos]);
 
-  const uploadPhoto = async (file: File, category: string) => {
-    if (!user) {
-      toast({
-        title: "Erro",
-        description: "Você precisa estar logado para fazer upload de fotos.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${category}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-
+  const uploadPhoto = async (file: File, section: string): Promise<string | null> => {
     try {
-      setUploading(prev => ({ ...prev, [category]: true }));
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `vistoria-fotos/${section}/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('vistoria-fotos')
-        .upload(fileName, file);
+        .upload(filePath, file);
 
-      if (error) {
-        throw error;
+      if (uploadError) {
+        console.error('Erro no upload:', uploadError);
+        throw uploadError;
       }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      const { data } = supabase.storage
         .from('vistoria-fotos')
-        .getPublicUrl(fileName);
+        .getPublicUrl(filePath);
 
-      const newPhotos = {
-        ...uploadedPhotos,
-        [category]: [...uploadedPhotos[category], urlData.publicUrl]
-      };
-
-      setUploadedPhotos(newPhotos);
-      onPhotosChange?.(newPhotos);
-
-      toast({
-        title: "Sucesso",
-        description: "Foto enviada com sucesso!",
-      });
-
+      return data.publicUrl;
     } catch (error) {
-      console.error('Error uploading photo:', error);
+      console.error('Erro ao fazer upload da foto:', error);
+      return null;
+    }
+  };
+
+  const handleFileUpload = async (files: FileList | null, section: string) => {
+    if (!files || files.length === 0) return;
+
+    setUploading(prev => ({ ...prev, [section]: true }));
+
+    try {
+      const uploadPromises = Array.from(files).map(file => uploadPhoto(file, section));
+      const uploadedUrls = await Promise.all(uploadPromises);
+      
+      const validUrls = uploadedUrls.filter((url): url is string => url !== null);
+      
+      if (validUrls.length > 0) {
+        const updatedPhotos = {
+          ...photos,
+          [section]: [...(photos[section] || []), ...validUrls]
+        };
+        
+        setPhotos(updatedPhotos);
+        onPhotosChange(updatedPhotos);
+        
+        toast({
+          title: "Sucesso",
+          description: `${validUrls.length} foto(s) enviada(s) com sucesso!`,
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
       toast({
         title: "Erro",
-        description: "Erro ao enviar foto. Tente novamente.",
-        variant: "destructive"
+        description: "Erro ao enviar fotos. Tente novamente.",
+        variant: "destructive",
       });
     } finally {
-      setUploading(prev => ({ ...prev, [category]: false }));
+      setUploading(prev => ({ ...prev, [section]: false }));
     }
   };
 
-  const removePhoto = async (category: string, photoUrl: string, index: number) => {
-    try {
-      // Extract file path from URL
-      const urlParts = photoUrl.split('/vistoria-fotos/');
-      if (urlParts.length > 1) {
-        const filePath = urlParts[1];
-        
-        // Delete from storage
-        const { error } = await supabase.storage
-          .from('vistoria-fotos')
-          .remove([filePath]);
-
-        if (error) {
-          console.error('Error deleting file:', error);
-        }
-      }
-
-      // Remove from state
-      const newPhotos = {
-        ...uploadedPhotos,
-        [category]: uploadedPhotos[category].filter((_, i) => i !== index)
-      };
-
-      setUploadedPhotos(newPhotos);
-      onPhotosChange?.(newPhotos);
-
-      toast({
-        title: "Sucesso",
-        description: "Foto removida com sucesso!",
-      });
-
-    } catch (error) {
-      console.error('Error removing photo:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao remover foto.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, category: string) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Erro",
-          description: "Por favor, selecione apenas arquivos de imagem.",
-          variant: "destructive"
-        });
-        continue;
-      }
-
-      // Validate file size (50MB max)
-      if (file.size > 50 * 1024 * 1024) {
-        toast({
-          title: "Erro",
-          description: "Arquivo muito grande. Tamanho máximo: 50MB.",
-          variant: "destructive"
-        });
-        continue;
-      }
-
-      await uploadPhoto(file, category);
-    }
-
-    // Reset input value
-    event.target.value = '';
+  const removePhoto = (section: string, index: number) => {
+    const updatedPhotos = {
+      ...photos,
+      [section]: photos[section]?.filter((_, i) => i !== index) || []
+    };
+    
+    setPhotos(updatedPhotos);
+    onPhotosChange(updatedPhotos);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Fotos do Veículo</CardTitle>
-        <CardDescription>Upload das fotos necessárias para a vistoria</CardDescription>
+        <CardTitle className="flex items-center gap-2">
+          <Camera className="w-5 h-5" />
+          Fotos do Veículo
+        </CardTitle>
+        <CardDescription>
+          Adicione fotos do veículo para documentar a vistoria
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {photoCategories.map(({ key, label }) => (
-            <div key={key} className="space-y-3">
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  {label}
-                  {uploading[key] && (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  )}
-                </label>
-                
-                <div className="relative">
-                  <Input 
-                    type="file" 
-                    multiple 
-                    accept="image/*"
-                    className="cursor-pointer"
-                    onChange={(e) => handleFileChange(e, key)}
-                    disabled={uploading[key]}
-                  />
-                  <Upload className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+        {photoSections.map((section) => (
+          <div key={section.key} className="space-y-3">
+            <div>
+              <Label className="text-sm font-medium">{section.label}</Label>
+              <p className="text-xs text-slate-600">{section.description}</p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handleFileUpload(e.target.files, section.key)}
+                className="flex-1"
+                disabled={uploading[section.key]}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploading[section.key]}
+              >
+                {uploading[section.key] ? (
+                  <>Enviando...</>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Enviar
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {photos[section.key] && photos[section.key].length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {photos[section.key].map((photo, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={photo}
+                      alt={`${section.label} ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg border"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removePhoto(section.key, index)}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(!photos[section.key] || photos[section.key].length === 0) && (
+              <div className="flex items-center justify-center h-24 border-2 border-dashed border-slate-300 rounded-lg">
+                <div className="text-center">
+                  <Image className="w-8 h-8 mx-auto text-slate-400 mb-2" />
+                  <p className="text-sm text-slate-500">Nenhuma foto adicionada</p>
                 </div>
               </div>
-
-              {/* Display uploaded photos */}
-              {uploadedPhotos[key].length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-gray-600">
-                    {uploadedPhotos[key].length} foto(s) enviada(s)
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {uploadedPhotos[key].map((photoUrl, index) => (
-                      <div key={index} className="relative group">
-                        <Badge 
-                          variant="secondary" 
-                          className="pr-8 cursor-pointer hover:bg-gray-200"
-                          onClick={() => window.open(photoUrl, '_blank')}
-                        >
-                          Foto {index + 1}
-                        </Badge>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          className="absolute -top-1 -right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removePhoto(key, photoUrl, index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-        
-        <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
-          <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-blue-800">
-            <p className="font-medium">Instruções:</p>
-            <ul className="mt-1 space-y-1 text-xs">
-              <li>• Selecione múltiplas fotos para cada categoria</li>
-              <li>• Formatos aceitos: JPG, PNG, WebP</li>
-              <li>• Tamanho máximo por foto: 50MB</li>
-              <li>• As fotos são salvas automaticamente</li>
-            </ul>
+            )}
           </div>
-        </div>
+        ))}
       </CardContent>
     </Card>
   );

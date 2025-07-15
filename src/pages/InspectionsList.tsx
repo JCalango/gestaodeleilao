@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Eye, Edit2, Trash2, Filter, Download, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +13,7 @@ const InspectionsList: React.FC = () => {
   const { vistorias, isLoading, deleteVistoria } = useVistorias();
   const [searchQuery, setSearchQuery] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
+  const navigate = useNavigate();
 
   const filteredVistorias = vistorias.filter(vistoria => {
     const matchesSearch = searchQuery === '' || 
@@ -31,6 +31,10 @@ const InspectionsList: React.FC = () => {
     if (confirm('Tem certeza que deseja excluir esta vistoria?')) {
       deleteVistoria(id);
     }
+  };
+
+  const handleEdit = (vistoriaId: string) => {
+    navigate(`/inspections/edit/${vistoriaId}`);
   };
 
   if (isLoading) {
@@ -172,7 +176,8 @@ const InspectionsList: React.FC = () => {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="w-8 h-8"
+                        className="w-8 h-8 text-green-600 hover:text-green-700"
+                        onClick={() => handleEdit(vistoria.id)}
                         title="Editar"
                       >
                         <Edit2 className="w-4 h-4" />
