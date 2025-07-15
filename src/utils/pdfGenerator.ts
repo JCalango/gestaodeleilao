@@ -974,10 +974,6 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
                 <div class="info-label">UF</div>
                 <div class="info-value">${vistoria.uf || 'BA'}</div>
               </div>
-              <div class="info-item">
-                <div class="info-label">PLACA PADRÃO MERCOSUL</div>
-                <div class="info-value">${vistoria.placa && vistoria.placa.length === 7 ? 'SIM' : 'NÃO'}</div>
-              </div>
             </div>
           </div>
         </div>
