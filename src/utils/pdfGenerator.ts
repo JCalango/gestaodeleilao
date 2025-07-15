@@ -1,3 +1,4 @@
+
 import { Vistoria } from '@/types/vistoria';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -88,38 +89,6 @@ const preloadImage = (url: string): Promise<boolean> => {
     };
     img.src = url;
   });
-};
-
-const generatePhotoSection = (category: string, photos: string[], categoryTitle: string) => {
-  if (!photos || photos.length === 0) {
-    return `
-      <div class="photo-section">
-        <div class="photo-section-title">${categoryTitle}</div>
-        <div class="photo-section-content">
-          <div class="no-photo-message">
-            <p>Foto não disponível para ${categoryTitle.toLowerCase()}</p>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  const photoElements = photos.map(photo => `
-    <div class="photo-item">
-      <img src="${photo}" alt="${categoryTitle}" class="photo-image" crossorigin="anonymous" />
-    </div>
-  `).join('');
-
-  return `
-    <div class="photo-section">
-      <div class="photo-section-title">${categoryTitle}</div>
-      <div class="photo-section-content">
-        <div class="photo-grid">
-          ${photoElements}
-        </div>
-      </div>
-    </div>
-  `;
 };
 
 const generatePhotoGrid = (photos: any) => {
@@ -246,6 +215,10 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
     minute: '2-digit'
   });
 
+  const dataInspecao = vistoria.data_inspecao 
+    ? new Date(vistoria.data_inspecao).toLocaleDateString('pt-BR') 
+    : 'N/A';
+
   const html = `
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -288,6 +261,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           -webkit-print-color-adjust: exact !important;
           color-adjust: exact !important;
           print-color-adjust: exact !important;
+          break-inside: avoid;
+          page-break-inside: avoid;
         }
         
         .header-content {
@@ -373,6 +348,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
         
         .section {
           margin-bottom: 25px;
+          break-inside: avoid;
+          page-break-inside: avoid;
         }
         
         .section-title {
@@ -407,6 +384,10 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           grid-template-columns: 1fr 1fr;
         }
         
+        .info-grid.four-cols {
+          grid-template-columns: 1fr 1fr 1fr 1fr;
+        }
+        
         .info-item {
           margin-bottom: 10px;
         }
@@ -433,6 +414,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           grid-template-columns: 1fr 1fr;
           gap: 20px;
           margin-top: 20px;
+          break-inside: avoid;
+          page-break-inside: avoid;
         }
         
         .subsection {
@@ -482,6 +465,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           background: #fed7aa;
           border: 2px solid #ea580c;
           border-radius: 8px;
+          break-inside: avoid;
+          page-break-inside: avoid;
           -webkit-print-color-adjust: exact !important;
           color-adjust: exact !important;
           print-color-adjust: exact !important;
@@ -510,6 +495,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           color: white;
           border-radius: 8px;
           margin-top: 20px;
+          break-inside: avoid;
+          page-break-inside: avoid;
           -webkit-print-color-adjust: exact !important;
           color-adjust: exact !important;
           print-color-adjust: exact !important;
@@ -539,6 +526,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           color: white;
           border-radius: 8px;
           margin-top: 20px;
+          break-inside: avoid;
+          page-break-inside: avoid;
           -webkit-print-color-adjust: exact !important;
           color-adjust: exact !important;
           print-color-adjust: exact !important;
@@ -675,6 +664,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           border: 2px solid #0284c7;
           border-radius: 8px;
           margin-top: 20px;
+          break-inside: avoid;
+          page-break-inside: avoid;
           -webkit-print-color-adjust: exact !important;
           color-adjust: exact !important;
           print-color-adjust: exact !important;
@@ -724,6 +715,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
           border: 2px solid #f59e0b;
           border-radius: 8px;
           margin-top: 20px;
+          break-inside: avoid;
+          page-break-inside: avoid;
           -webkit-print-color-adjust: exact !important;
           color-adjust: exact !important;
           print-color-adjust: exact !important;
@@ -758,11 +751,18 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
             print-color-adjust: exact !important;
           }
           
+          .section {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          
           .header {
             background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%) !important;
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
             print-color-adjust: exact !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
           }
           
           .section-title {
@@ -836,6 +836,36 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
             break-inside: avoid;
             page-break-inside: avoid;
           }
+          
+          .motor-chassi-section {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          
+          .restrictions-section {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          
+          .people-info-section {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          
+          .debts-section {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          
+          .observations-section {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+          
+          .responsibility-section {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
         }
       </style>
     </head>
@@ -877,6 +907,12 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
               <div class="info-label">NÚMERO DO LOTE</div>
               <div class="info-value">${vistoria.numero_controle || 'N/A'}</div>
             </div>
+            ${vistoria.data_inspecao ? `
+            <div class="info-item">
+              <div class="info-label">DATA DA INSPEÇÃO</div>
+              <div class="info-value">${dataInspecao}</div>
+            </div>
+            ` : ''}
           </div>
         </div>
 
@@ -894,8 +930,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
                 <div class="info-value">${vistoria.renavam || 'N/A'}</div>
               </div>
               <div class="info-item">
-                <div class="info-label">TIPO</div>
-                <div class="info-value">Veículo</div>
+                <div class="info-label">CATEGORIA</div>
+                <div class="info-value">${vistoria.categoria || 'N/A'}</div>
               </div>
             </div>
             
@@ -939,8 +975,8 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
                 <div class="info-value">${vistoria.uf || 'BA'}</div>
               </div>
               <div class="info-item">
-                <div class="info-label">ESPÉCIE</div>
-                <div class="info-value">Passageiro</div>
+                <div class="info-label">PLACA PADRÃO MERCOSUL</div>
+                <div class="info-value">${vistoria.placa && vistoria.placa.length === 7 ? 'SIM' : 'NÃO'}</div>
               </div>
             </div>
           </div>
@@ -957,10 +993,10 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
               </div>
               <div class="info-item">
                 <div class="info-label">CONDIÇÃO</div>
-                <div class="condition-highlight">${vistoria.condicao_motor || 'Não informado'}</div>
+                <div class="condition-highlight">${vistoria.condicao_motor || 'Dentro dos padrões originais'}</div>
               </div>
               <div class="info-item">
-                <div class="info-label">MOTOR NÃO PERTENCENTE AO VEÍCULO?</div>
+                <div class="info-label">MOTOR ALTERADO?</div>
                 <div class="info-value">NÃO</div>
               </div>
             </div>
@@ -978,7 +1014,7 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
                 <div class="info-value">${vistoria.condicao_chassi || 'Dentro dos padrões originais'}</div>
               </div>
               <div class="info-item">
-                <div class="info-label">DANO/REPARO?</div>
+                <div class="info-label">CHASSI REMARCADO?</div>
                 <div class="info-value">NÃO</div>
               </div>
             </div>
@@ -989,10 +1025,6 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
         <div class="restrictions-section">
           <div class="restrictions-title">CONDIÇÕES E RESTRIÇÕES</div>
           <div class="restrictions-grid">
-            <div class="info-item">
-              <div class="info-label">PLACA NOVO PADRÃO?</div>
-              <div class="info-value">${vistoria.placa && vistoria.placa.length === 7 ? 'SIM' : 'NÃO'}</div>
-            </div>
             <div class="info-item">
               <div class="info-label">ROUBO/FURTO?</div>
               <div class="info-value">${vistoria.furto_roubo ? 'SIM' : 'NÃO'}</div>
@@ -1008,6 +1040,10 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
             <div class="info-item">
               <div class="info-label">ALIENAÇÃO FIDUCIÁRIA?</div>
               <div class="info-value">${vistoria.alienacao_fiduciaria ? 'SIM' : 'NÃO'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">POSSUI COMUNICAÇÃO DE VENDA?</div>
+              <div class="info-value">${vistoria.possui_comunicacao_venda ? 'SIM' : 'NÃO'}</div>
             </div>
             <div class="info-item">
               <div class="info-label">VEÍCULO POSSUI HISTÓRICO DE LEILÃO?</div>
@@ -1034,17 +1070,34 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
                 </div>
                 <div class="info-item">
                   <div class="info-label">ENDEREÇO</div>
-                  <div class="info-value">
-                    ${[
-                      vistoria.endereco_proprietario,
-                      vistoria.numero_casa_proprietario,
-                      vistoria.complemento_proprietario,
-                      vistoria.bairro_proprietario,
-                      vistoria.cidade_proprietario,
-                      vistoria.cep_proprietario
-                    ].filter(Boolean).join(', ') || 'N/A'}
-                  </div>
+                  <div class="info-value">${vistoria.endereco_proprietario || 'N/A'}</div>
                 </div>
+                <div class="info-item">
+                  <div class="info-label">NÚMERO</div>
+                  <div class="info-value">${vistoria.numero_casa_proprietario || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">COMPLEMENTO</div>
+                  <div class="info-value">${vistoria.complemento_proprietario || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">CEP</div>
+                  <div class="info-value">${vistoria.cep_proprietario || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">CIDADE</div>
+                  <div class="info-value">${vistoria.cidade_proprietario || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">BAIRRO</div>
+                  <div class="info-value">${vistoria.bairro_proprietario || 'N/A'}</div>
+                </div>
+                ${vistoria.informacoes_complementares_proprietario ? `
+                <div class="info-item" style="grid-column: 1 / -1;">
+                  <div class="info-label">INFORMAÇÕES COMPLEMENTARES</div>
+                  <div class="info-value">${vistoria.informacoes_complementares_proprietario}</div>
+                </div>
+                ` : ''}
               </div>
             </div>
 
@@ -1063,15 +1116,26 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
                 </div>
                 <div class="info-item">
                   <div class="info-label">ENDEREÇO</div>
-                  <div class="info-value">
-                    ${[
-                      vistoria.endereco_possuidor,
-                      vistoria.bairro_possuidor,
-                      vistoria.cidade_possuidor,
-                      vistoria.cep_possuidor
-                    ].filter(Boolean).join(', ') || 'N/A'}
-                  </div>
+                  <div class="info-value">${vistoria.endereco_possuidor || 'N/A'}</div>
                 </div>
+                <div class="info-item">
+                  <div class="info-label">CEP</div>
+                  <div class="info-value">${vistoria.cep_possuidor || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">CIDADE</div>
+                  <div class="info-value">${vistoria.cidade_possuidor || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">BAIRRO</div>
+                  <div class="info-value">${vistoria.bairro_possuidor || 'N/A'}</div>
+                </div>
+                ${vistoria.informacoes_complementares_possuidor ? `
+                <div class="info-item" style="grid-column: 1 / -1;">
+                  <div class="info-label">INFORMAÇÕES COMPLEMENTARES</div>
+                  <div class="info-value">${vistoria.informacoes_complementares_possuidor}</div>
+                </div>
+                ` : ''}
               </div>
             </div>
             ` : ''}
@@ -1091,16 +1155,27 @@ export const generateInspectionPDF = async (vistoria: Vistoria) => {
                 </div>
                 <div class="info-item">
                   <div class="info-label">ENDEREÇO</div>
-                  <div class="info-value">
-                    ${[
-                      vistoria.endereco_financeira,
-                      vistoria.numero_endereco_financeira,
-                      vistoria.complemento_financeira,
-                      vistoria.bairro_financeira,
-                      vistoria.cidade_financeira,
-                      vistoria.cep_financeira
-                    ].filter(Boolean).join(', ') || 'N/A'}
-                  </div>
+                  <div class="info-value">${vistoria.endereco_financeira || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">NÚMERO</div>
+                  <div class="info-value">${vistoria.numero_endereco_financeira || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">COMPLEMENTO</div>
+                  <div class="info-value">${vistoria.complemento_financeira || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">CEP</div>
+                  <div class="info-value">${vistoria.cep_financeira || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">CIDADE</div>
+                  <div class="info-value">${vistoria.cidade_financeira || 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">BAIRRO</div>
+                  <div class="info-value">${vistoria.bairro_financeira || 'N/A'}</div>
                 </div>
               </div>
             </div>
