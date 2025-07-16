@@ -3,8 +3,7 @@ import React from 'react';
 import { Control } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { VistoriaFormData } from '@/types/vistoria';
 
 interface BasicInfoSectionProps {
@@ -48,34 +47,6 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ control }) => {
                   onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value).toISOString() : '')}
                 />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name="tipo_veiculo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de Veículo</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="automovel">Automóvel</SelectItem>
-                  <SelectItem value="motocicleta">Motocicleta</SelectItem>
-                  <SelectItem value="caminhao">Caminhão</SelectItem>
-                  <SelectItem value="onibus">Ônibus</SelectItem>
-                  <SelectItem value="van">Van</SelectItem>
-                  <SelectItem value="pickup">Pickup</SelectItem>
-                  <SelectItem value="suv">SUV</SelectItem>
-                  <SelectItem value="outros">Outros</SelectItem>
-                </SelectContent>
-              </Select>
               <FormMessage />
             </FormItem>
           )}
