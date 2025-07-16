@@ -4,7 +4,9 @@ import { Control } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { VistoriaFormData } from '@/types/vistoria';
 
 interface VehicleInfoSectionProps {
@@ -208,6 +210,33 @@ const VehicleInfoSection: React.FC<VehicleInfoSectionProps> = ({ control }) => {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={control}
+          name="motor_alterado"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel>Motor Alterado?</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  className="flex flex-row space-x-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="sim" id="motor_sim" />
+                    <Label htmlFor="motor_sim">SIM</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="nao" id="motor_nao" />
+                    <Label htmlFor="motor_nao">NÃO</Label>
+                  </div>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <FormField
           control={control}
@@ -222,11 +251,10 @@ const VehicleInfoSection: React.FC<VehicleInfoSectionProps> = ({ control }) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="excelente">Excelente</SelectItem>
-                  <SelectItem value="bom">Bom</SelectItem>
-                  <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="ruim">Ruim</SelectItem>
-                  <SelectItem value="inoperante">Inoperante</SelectItem>
+                  <SelectItem value="motor_original">Motor com características originais</SelectItem>
+                  <SelectItem value="numeracao_ilegivel">Numeração do motor ilegível ou danificada</SelectItem>
+                  <SelectItem value="motor_nao_cadastrado">Motor não cadastrado na base nacional</SelectItem>
+                  <SelectItem value="numeracao_divergente">Numeração do motor divergente da base nacional do veículo</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -261,10 +289,10 @@ const VehicleInfoSection: React.FC<VehicleInfoSectionProps> = ({ control }) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="integro">Íntegro</SelectItem>
-                  <SelectItem value="danificado">Danificado</SelectItem>
-                  <SelectItem value="corroido">Corroído</SelectItem>
-                  <SelectItem value="ilegivel">Ilegível</SelectItem>
+                  <SelectItem value="chassi_integro">Chassi íntegro, original, legível e registrado</SelectItem>
+                  <SelectItem value="numeracao_ilegivel_avariada">Numeração ilegível ou avariada</SelectItem>
+                  <SelectItem value="numeracao_ausente">Numeração ausente ou não localizada</SelectItem>
+                  <SelectItem value="suspeita_adulteracao">Suspeita de adulteração</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

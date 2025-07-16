@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -29,6 +30,7 @@ const NewVistoria: React.FC = () => {
       restricao_administrativa: false,
       alienacao_fiduciaria: false,
       possui_comunicacao_venda: false,
+      motor_alterado: '', // Added default value for motor_alterado
     },
   });
 

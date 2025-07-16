@@ -35,6 +35,7 @@ const EditVistoria: React.FC = () => {
       restricao_administrativa: false,
       alienacao_fiduciaria: false,
       possui_comunicacao_venda: false,
+      motor_alterado: '', // Added default value for motor_alterado
     },
   });
 
@@ -56,6 +57,7 @@ const EditVistoria: React.FC = () => {
         tipo_combustivel: vistoria.tipo_combustivel || '',
         categoria: vistoria.categoria || '',
         numero_motor: vistoria.numero_motor || '',
+        motor_alterado: vistoria.motor_alterado || '', // Added motor_alterado field
         condicao_motor: vistoria.condicao_motor || '',
         numero_chassi: vistoria.numero_chassi || '',
         condicao_chassi: vistoria.condicao_chassi || '',
