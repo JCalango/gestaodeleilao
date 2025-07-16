@@ -196,6 +196,34 @@ const VehicleInfoSection: React.FC<VehicleInfoSectionProps> = ({ control }) => {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={control}
+          name="tipo_veiculo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo de Veículo</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="automovel">Automóvel</SelectItem>
+                  <SelectItem value="motocicleta">Motocicleta</SelectItem>
+                  <SelectItem value="caminhao">Caminhão</SelectItem>
+                  <SelectItem value="onibus">Ônibus</SelectItem>
+                  <SelectItem value="van">Van</SelectItem>
+                  <SelectItem value="caminhonete">Caminhonete</SelectItem>
+                  <SelectItem value="microonibus">Microônibus</SelectItem>
+                  <SelectItem value="outros">Outros</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <FormField
           control={control}

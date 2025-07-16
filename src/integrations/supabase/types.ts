@@ -921,6 +921,7 @@ export type Database = {
           licenciamento: string | null
           marca: string | null
           modelo: string | null
+          motor_alterado: string | null
           municipio: string | null
           nome_financeira: string | null
           nome_possuidor: string | null
@@ -988,6 +989,7 @@ export type Database = {
           licenciamento?: string | null
           marca?: string | null
           modelo?: string | null
+          motor_alterado?: string | null
           municipio?: string | null
           nome_financeira?: string | null
           nome_possuidor?: string | null
@@ -1055,6 +1057,7 @@ export type Database = {
           licenciamento?: string | null
           marca?: string | null
           modelo?: string | null
+          motor_alterado?: string | null
           municipio?: string | null
           nome_financeira?: string | null
           nome_possuidor?: string | null

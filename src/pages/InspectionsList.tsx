@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Eye, Edit2, Trash2, Filter, Download, Loader2, AlertTriangle } from 'lucide-react';
+import { Plus, Eye, Edit2, Trash2, Filter, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -182,16 +183,6 @@ const InspectionsList: React.FC = () => {
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
-                      <Link to={`/inspections/${vistoria.id}/damage-assessment`}>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="w-8 h-8 text-orange-600 hover:text-orange-700"
-                          title="Avaliação de Avarias"
-                        >
-                          <AlertTriangle className="w-4 h-4" />
-                        </Button>
-                      </Link>
                       <Button 
                         variant="ghost" 
                         size="icon" 
