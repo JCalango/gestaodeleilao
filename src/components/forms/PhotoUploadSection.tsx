@@ -1,13 +1,13 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Camera, Upload, X, Image, AlertCircle, Loader2, RotateCcw } from 'lucide-react';
+import { Camera, RotateCcw, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import PhotoUploadControls from './PhotoUploadControls';
+import PhotoGrid from './PhotoGrid';
 
 interface PhotoUploadSectionProps {
   onPhotosChange: (photos: Record<string, string[]>) => void;
@@ -44,11 +44,15 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     setPhotos(initialPhotos);
   }, [initialPhotos]);
 
-  // Notificar mudanças nas fotos
+  // Notificar mudanças nas fotos usando useCallback para evitar re-renderizações
+  const notifyPhotosChange = useCallback((newPhotos: Record<string, string[]>) => {
+    console.log('PhotoUploadSection: photos state changed:', newPhotos);
+    onPhotosChange(newPhotos);
+  }, [onPhotosChange]);
+
   useEffect(() => {
-    console.log('PhotoUploadSection: photos state changed:', photos);
-    onPhotosChange(photos);
-  }, [photos, onPhotosChange]);
+    notifyPhotosChange(photos);
+  }, [photos, notifyPhotosChange]);
 
   const validateFile = (file: File): string | null => {
     const maxSize = 10 * 1024 * 1024; // 10MB
@@ -76,7 +80,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
         const maxHeight = 1080;
         let { width, height } = img;
 
-        // Calcular novas dimensões mantendo proporção
         if (width > height) {
           if (width > maxWidth) {
             height = (height * maxWidth) / width;
@@ -230,12 +233,10 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     if (!photoUrl) return;
 
     try {
-      // Extrair o caminho do arquivo da URL
       const url = new URL(photoUrl);
       const pathParts = url.pathname.split('/');
-      const filePath = pathParts.slice(-3).join('/'); // vistoria-fotos/section/filename
+      const filePath = pathParts.slice(-3).join('/');
 
-      // Remover do storage
       const { error } = await supabase.storage
         .from('vistoria-fotos')
         .remove([filePath]);
@@ -249,7 +250,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
       console.error('Error processing photo URL:', error);
     }
 
-    // Remover da lista local
     const updatedPhotos = {
       ...photos,
       [section]: photos[section]?.filter((_, i) => i !== index) || []
@@ -268,7 +268,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     if (sectionPhotos.length === 0) return;
 
     try {
-      // Remover todas as fotos do storage
       const removePromises = sectionPhotos.map(async (photoUrl) => {
         try {
           const url = new URL(photoUrl);
@@ -289,7 +288,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
 
       await Promise.all(removePromises);
       
-      // Limpar da lista local
       const updatedPhotos = {
         ...photos,
         [section]: []
@@ -319,10 +317,8 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      // Remover a foto atual primeiro
       await removePhoto(section, index);
       
-      // Fazer upload da nova foto
       const fileList = new DataTransfer();
       fileList.items.add(file);
       await handleFileUpload(fileList.files, section);
@@ -363,54 +359,13 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
               )}
             </div>
             
-            <div className="flex items-center gap-3">
-              <Input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                multiple
-                onChange={(e) => handleFileUpload(e.target.files, section.key)}
-                className="flex-1"
-                disabled={uploading[section.key]}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={uploading[section.key]}
-                onClick={() => {
-                  const input = document.createElement('input');
-                  input.type = 'file';
-                  input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
-                  input.multiple = true;
-                  input.onchange = (e) => handleFileUpload((e.target as HTMLInputElement).files, section.key);
-                  input.click();
-                }}
-              >
-                {uploading[section.key] ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {Math.round(uploadProgress[section.key] || 0)}%
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Enviar
-                  </>
-                )}
-              </Button>
-            </div>
+            <PhotoUploadControls
+              sectionKey={section.key}
+              isUploading={uploading[section.key] || false}
+              uploadProgress={uploadProgress[section.key] || 0}
+              onFileUpload={(files) => handleFileUpload(files, section.key)}
+            />
 
-            {/* Barra de progresso */}
-            {uploading[section.key] && (
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${uploadProgress[section.key] || 0}%` }}
-                />
-              </div>
-            )}
-
-            {/* Exibir erros */}
             {uploadErrors[section.key] && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -420,57 +375,12 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
               </Alert>
             )}
 
-            {/* Fotos existentes */}
-            {photos[section.key] && photos[section.key].length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {photos[section.key].map((photo, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={photo}
-                      alt={`${section.label} ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg border cursor-pointer transition-transform hover:scale-105"
-                      onClick={() => window.open(photo, '_blank')}
-                      onError={(e) => {
-                        console.error('Error loading image:', photo);
-                        e.currentTarget.src = '/placeholder.svg';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-lg flex items-center justify-center gap-1">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => replacePhoto(section.key, index)}
-                        title="Substituir foto"
-                      >
-                        <Upload className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => removePhoto(section.key, index)}
-                        title="Remover foto"
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Estado vazio */}
-            {(!photos[section.key] || photos[section.key].length === 0) && (
-              <div className="flex items-center justify-center h-24 border-2 border-dashed border-slate-300 rounded-lg hover:border-slate-400 transition-colors">
-                <div className="text-center">
-                  <Image className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-                  <p className="text-sm text-slate-500">Nenhuma foto adicionada</p>
-                </div>
-              </div>
-            )}
+            <PhotoGrid
+              photos={photos[section.key] || []}
+              sectionLabel={section.label}
+              onReplacePhoto={(index) => replacePhoto(section.key, index)}
+              onRemovePhoto={(index) => removePhoto(section.key, index)}
+            />
           </div>
         ))}
       </CardContent>
