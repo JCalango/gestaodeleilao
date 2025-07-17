@@ -61,7 +61,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = new Image();
+      const img = document.createElement('img'); // Fixed: use document.createElement instead of new Image()
 
       img.onload = () => {
         const maxWidth = 1920;
@@ -101,6 +101,14 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
           'image/jpeg',
           0.8
         );
+
+        // Clean up the object URL
+        URL.revokeObjectURL(img.src);
+      };
+
+      img.onerror = () => {
+        console.error('Erro ao carregar imagem para compressão');
+        resolve(file);
       };
 
       img.src = URL.createObjectURL(file);
@@ -124,8 +132,8 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
 
       console.log(`Iniciando upload: ${filePath}, Tamanho: ${compressedFile.size} bytes`);
 
-      // Simular progresso de upload
-      setUploadProgress(prev => ({ ...prev, [section]: 10 }));
+      // Upload com progresso simulado
+      setUploadProgress(prev => ({ ...prev, [section]: 20 }));
 
       const { error: uploadError } = await supabase.storage
         .from('vistoria-fotos')
@@ -134,7 +142,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
           upsert: false
         });
 
-      setUploadProgress(prev => ({ ...prev, [section]: 90 }));
+      setUploadProgress(prev => ({ ...prev, [section]: 80 }));
 
       if (uploadError) {
         console.error('Erro no upload:', uploadError);
@@ -166,6 +174,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     try {
       const uploadPromises = Array.from(files).map(async (file, index) => {
         try {
+          setUploadProgress(prev => ({ ...prev, [section]: (index + 1) * 10 }));
           const url = await uploadPhoto(file, section);
           return url;
         } catch (error) {
@@ -211,7 +220,9 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
       });
     } finally {
       setUploading(prev => ({ ...prev, [section]: false }));
-      setUploadProgress(prev => ({ ...prev, [section]: 0 }));
+      setTimeout(() => {
+        setUploadProgress(prev => ({ ...prev, [section]: 0 }));
+      }, 1000);
     }
   };
 
@@ -219,8 +230,8 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     const photoUrl = photos[section]?.[index];
     if (!photoUrl) return;
 
-    // Extrair o caminho do arquivo da URL
     try {
+      // Extrair o caminho do arquivo da URL
       const url = new URL(photoUrl);
       const pathParts = url.pathname.split('/');
       const filePath = pathParts.slice(-3).join('/'); // vistoria-fotos/section/filename
@@ -255,12 +266,12 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
   const replacePhoto = (section: string, index: number) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      // Remover a foto atual
+      // Remover a foto atual primeiro
       await removePhoto(section, index);
       
       // Fazer upload da nova foto
@@ -304,6 +315,10 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
                 variant="outline"
                 size="sm"
                 disabled={uploading[section.key]}
+                onClick={() => {
+                  const input = document.querySelector(`input[type="file"]`) as HTMLInputElement;
+                  input?.click();
+                }}
               >
                 {uploading[section.key] ? (
                   <>
@@ -349,6 +364,10 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
                       alt={`${section.label} ${index + 1}`}
                       className="w-full h-24 object-cover rounded-lg border cursor-pointer transition-transform hover:scale-105"
                       onClick={() => window.open(photo, '_blank')}
+                      onError={(e) => {
+                        console.error('Erro ao carregar imagem:', photo);
+                        e.currentTarget.src = '/placeholder.svg';
+                      }}
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-lg flex items-center justify-center gap-1">
                       <Button
