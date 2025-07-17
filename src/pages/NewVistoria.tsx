@@ -47,8 +47,8 @@ const NewVistoria: React.FC = () => {
     try {
       setIsSubmitting(true);
       
-      // Incluir as URLs das fotos nos dados do formulário
-      const formDataWithPhotos = {
+      // Garantir que as URLs das fotos sejam incluídas nos dados corretos
+      const formDataWithPhotos: VistoriaFormData = {
         ...data,
         fotos_frente: uploadedPhotos.frente || [],
         fotos_lateral_esquerda: uploadedPhotos.lateral_esquerda || [],
@@ -59,6 +59,20 @@ const NewVistoria: React.FC = () => {
       };
 
       console.log('Submitting vistoria with photos:', formDataWithPhotos);
+      
+      // Verificar se as URLs estão sendo passadas corretamente
+      const photoFields = [
+        'fotos_frente', 'fotos_lateral_esquerda', 'fotos_lateral_direita',
+        'fotos_chassi', 'fotos_traseira', 'fotos_motor'
+      ];
+      
+      photoFields.forEach(field => {
+        const photos = formDataWithPhotos[field as keyof VistoriaFormData] as string[];
+        if (photos && photos.length > 0) {
+          console.log(`${field}:`, photos);
+        }
+      });
+
       await addVistoria(formDataWithPhotos);
       
       toast({

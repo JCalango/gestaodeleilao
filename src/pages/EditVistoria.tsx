@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -22,6 +23,7 @@ const EditVistoria: React.FC = () => {
   const { getVistoriaById, updateVistoria } = useVistorias();
   const [uploadedPhotos, setUploadedPhotos] = useState<Record<string, string[]>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [initialPhotosLoaded, setInitialPhotosLoaded] = useState(false);
   
   const vistoria = id ? getVistoriaById(id) : null;
   
@@ -40,7 +42,7 @@ const EditVistoria: React.FC = () => {
   });
 
   useEffect(() => {
-    if (vistoria) {
+    if (vistoria && !initialPhotosLoaded) {
       console.log('Loading vistoria data:', vistoria);
       
       // Preenche o formulário com os dados existentes
@@ -114,8 +116,9 @@ const EditVistoria: React.FC = () => {
       
       console.log('Setting existing photos:', existingPhotos);
       setUploadedPhotos(existingPhotos);
+      setInitialPhotosLoaded(true);
     }
-  }, [vistoria, form]);
+  }, [vistoria, form, initialPhotosLoaded]);
 
   const handlePhotosChange = (photos: Record<string, string[]>) => {
     console.log('Photos updated in EditVistoria:', photos);
@@ -135,8 +138,8 @@ const EditVistoria: React.FC = () => {
     try {
       setIsLoading(true);
 
-      // Inclui as fotos atualizadas nos dados
-      const formDataWithPhotos = {
+      // Garantir que as URLs das fotos atualizadas sejam incluídas
+      const formDataWithPhotos: Partial<VistoriaFormData> = {
         ...data,
         fotos_frente: uploadedPhotos.frente || [],
         fotos_lateral_esquerda: uploadedPhotos.lateral_esquerda || [],
@@ -147,6 +150,20 @@ const EditVistoria: React.FC = () => {
       };
 
       console.log('Updating vistoria with photos:', formDataWithPhotos);
+      
+      // Verificar se as URLs estão sendo passadas corretamente
+      const photoFields = [
+        'fotos_frente', 'fotos_lateral_esquerda', 'fotos_lateral_direita',
+        'fotos_chassi', 'fotos_traseira', 'fotos_motor'
+      ];
+      
+      photoFields.forEach(field => {
+        const photos = formDataWithPhotos[field as keyof VistoriaFormData] as string[];
+        if (photos && photos.length > 0) {
+          console.log(`${field}:`, photos);
+        }
+      });
+
       await updateVistoria(id, formDataWithPhotos);
       
       toast({

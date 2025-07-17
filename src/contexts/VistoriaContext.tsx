@@ -65,13 +65,25 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
         return;
       }
 
+      // Preparar os dados garantindo que as URLs das fotos sejam incluídas
+      const dataToInsert = {
+        ...vistoriaData,
+        created_by: user.id,
+        updated_by: user.id,
+        // Garantir que os arrays de fotos sejam incluídos corretamente
+        fotos_frente: vistoriaData.fotos_frente || [],
+        fotos_lateral_esquerda: vistoriaData.fotos_lateral_esquerda || [],
+        fotos_lateral_direita: vistoriaData.fotos_lateral_direita || [],
+        fotos_chassi: vistoriaData.fotos_chassi || [],
+        fotos_traseira: vistoriaData.fotos_traseira || [],
+        fotos_motor: vistoriaData.fotos_motor || []
+      };
+
+      console.log('Inserting vistoria data:', dataToInsert);
+
       const { data, error } = await supabase
         .from('vistorias')
-        .insert([{
-          ...vistoriaData,
-          created_by: user.id, // Set the created_by field
-          updated_by: user.id
-        }])
+        .insert([dataToInsert])
         .select()
         .single();
 
@@ -79,13 +91,15 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
         console.error('Error adding vistoria:', error);
         toast({
           title: "Erro",
-          description: "Erro ao salvar vistoria",
+          description: `Erro ao salvar vistoria: ${error.message}`,
           variant: "destructive",
         });
         return;
       }
 
+      console.log('Vistoria saved successfully:', data);
       setVistorias(prev => [data, ...prev]);
+      
       toast({
         title: "Sucesso",
         description: "Vistoria salva com sucesso!",
@@ -114,13 +128,25 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
         return;
       }
 
+      // Preparar os dados garantindo que as URLs das fotos sejam incluídas
+      const dataToUpdate = {
+        ...vistoriaData,
+        updated_by: user.id,
+        updated_at: new Date().toISOString(),
+        // Garantir que os arrays de fotos sejam incluídos corretamente
+        fotos_frente: vistoriaData.fotos_frente || [],
+        fotos_lateral_esquerda: vistoriaData.fotos_lateral_esquerda || [],
+        fotos_lateral_direita: vistoriaData.fotos_lateral_direita || [],
+        fotos_chassi: vistoriaData.fotos_chassi || [],
+        fotos_traseira: vistoriaData.fotos_traseira || [],
+        fotos_motor: vistoriaData.fotos_motor || []
+      };
+
+      console.log('Updating vistoria data:', dataToUpdate);
+
       const { data, error } = await supabase
         .from('vistorias')
-        .update({
-          ...vistoriaData,
-          updated_by: user.id,
-          updated_at: new Date().toISOString()
-        })
+        .update(dataToUpdate)
         .eq('id', id)
         .select()
         .single();
@@ -129,13 +155,15 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
         console.error('Error updating vistoria:', error);
         toast({
           title: "Erro",
-          description: "Erro ao atualizar vistoria",
+          description: `Erro ao atualizar vistoria: ${error.message}`,
           variant: "destructive",
         });
         return;
       }
 
+      console.log('Vistoria updated successfully:', data);
       setVistorias(prev => prev.map(v => v.id === id ? data : v));
+      
       toast({
         title: "Sucesso",
         description: "Vistoria atualizada com sucesso!",
