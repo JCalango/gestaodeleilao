@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -10,13 +10,17 @@ export interface PhotoUploadState {
   uploadErrors: Record<string, string>;
 }
 
-export const usePhotoUpload = (initialPhotos: Record<string, string[]> = {}) => {
+export const usePhotoUpload = (onPhotosChange?: (photos: Record<string, string[]>) => void) => {
   const [state, setState] = useState<PhotoUploadState>({
-    photos: initialPhotos,
+    photos: {},
     uploading: {},
     uploadProgress: {},
     uploadErrors: {}
   });
+
+  // Use ref to avoid unnecessary re-renders
+  const onPhotosChangeRef = useRef(onPhotosChange);
+  onPhotosChangeRef.current = onPhotosChange;
 
   const validateFile = (file: File): string | null => {
     const maxSize = 10 * 1024 * 1024; // 10MB
@@ -157,20 +161,25 @@ export const usePhotoUpload = (initialPhotos: Record<string, string[]> = {}) => 
       const validUrls = uploadedUrls.filter((url): url is string => url !== null);
       const failedCount = uploadedUrls.length - validUrls.length;
       
-      setState(prev => ({
-        ...prev,
-        uploadProgress: { ...prev.uploadProgress, [section]: 100 }
-      }));
+      setState(prev => {
+        const newPhotos = {
+          ...prev.photos,
+          [section]: [...(prev.photos[section] || []), ...validUrls]
+        };
+        
+        // Notify parent component
+        if (onPhotosChangeRef.current) {
+          onPhotosChangeRef.current(newPhotos);
+        }
+        
+        return {
+          ...prev,
+          photos: newPhotos,
+          uploadProgress: { ...prev.uploadProgress, [section]: 100 }
+        };
+      });
 
       if (validUrls.length > 0) {
-        setState(prev => ({
-          ...prev,
-          photos: {
-            ...prev.photos,
-            [section]: [...(prev.photos[section] || []), ...validUrls]
-          }
-        }));
-        
         console.log(`Successfully uploaded ${validUrls.length} photos for section ${section}`);
         
         toast({
@@ -241,13 +250,22 @@ export const usePhotoUpload = (initialPhotos: Record<string, string[]> = {}) => 
 
     await removePhotoFromStorage(photoUrl);
 
-    setState(prev => ({
-      ...prev,
-      photos: {
+    setState(prev => {
+      const newPhotos = {
         ...prev.photos,
         [section]: prev.photos[section]?.filter((_, i) => i !== index) || []
+      };
+      
+      // Notify parent component
+      if (onPhotosChangeRef.current) {
+        onPhotosChangeRef.current(newPhotos);
       }
-    }));
+      
+      return {
+        ...prev,
+        photos: newPhotos
+      };
+    });
     
     toast({
       title: "Foto removida",
@@ -266,13 +284,22 @@ export const usePhotoUpload = (initialPhotos: Record<string, string[]> = {}) => 
 
       await Promise.all(removePromises);
       
-      setState(prev => ({
-        ...prev,
-        photos: {
+      setState(prev => {
+        const newPhotos = {
           ...prev.photos,
           [section]: []
+        };
+        
+        // Notify parent component
+        if (onPhotosChangeRef.current) {
+          onPhotosChangeRef.current(newPhotos);
         }
-      }));
+        
+        return {
+          ...prev,
+          photos: newPhotos
+        };
+      });
       
       toast({
         title: "Fotos removidas",
@@ -310,6 +337,11 @@ export const usePhotoUpload = (initialPhotos: Record<string, string[]> = {}) => 
       ...prev,
       photos: newPhotos
     }));
+    
+    // Notify parent component
+    if (onPhotosChangeRef.current) {
+      onPhotosChangeRef.current(newPhotos);
+    }
   }, []);
 
   return {

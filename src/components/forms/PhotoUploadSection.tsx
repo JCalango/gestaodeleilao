@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -33,6 +33,9 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
   onPhotosChange, 
   initialPhotos = {} 
 }) => {
+  // Memoize the callback to prevent unnecessary re-renders
+  const stableOnPhotosChange = useMemo(() => onPhotosChange, []);
+
   const {
     photos,
     uploading,
@@ -43,21 +46,24 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     clearAllPhotos,
     replacePhoto,
     setPhotos
-  } = usePhotoUpload(initialPhotos);
+  } = usePhotoUpload(stableOnPhotosChange);
 
-  // Sincronizar fotos iniciais quando mudarem
+  // Set initial photos only once when component mounts or when initialPhotos change significantly
   useEffect(() => {
-    console.log('PhotoUploadSection: initialPhotos changed:', initialPhotos);
-    if (JSON.stringify(initialPhotos) !== JSON.stringify(photos)) {
+    const hasPhotos = Object.keys(initialPhotos).some(key => 
+      initialPhotos[key] && initialPhotos[key].length > 0
+    );
+    
+    const currentHasPhotos = Object.keys(photos).some(key => 
+      photos[key] && photos[key].length > 0
+    );
+
+    // Only set photos if we have initial photos and current state is empty
+    if (hasPhotos && !currentHasPhotos) {
+      console.log('Setting initial photos:', initialPhotos);
       setPhotos(initialPhotos);
     }
   }, [initialPhotos, photos, setPhotos]);
-
-  // Notificar mudanças nas fotos para o componente pai
-  useEffect(() => {
-    console.log('PhotoUploadSection: photos state changed:', photos);
-    onPhotosChange(photos);
-  }, [photos, onPhotosChange]);
 
   return (
     <Card>
