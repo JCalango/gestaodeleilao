@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -42,6 +41,8 @@ const EditVistoria: React.FC = () => {
 
   useEffect(() => {
     if (vistoria) {
+      console.log('Loading vistoria data:', vistoria);
+      
       // Preenche o formulário com os dados existentes
       form.reset({
         numero_controle: vistoria.numero_controle || '',
@@ -102,18 +103,22 @@ const EditVistoria: React.FC = () => {
       });
 
       // Configura as fotos existentes
-      setUploadedPhotos({
+      const existingPhotos = {
         frente: vistoria.fotos_frente || [],
         lateral_esquerda: vistoria.fotos_lateral_esquerda || [],
         lateral_direita: vistoria.fotos_lateral_direita || [],
         chassi: vistoria.fotos_chassi || [],
         traseira: vistoria.fotos_traseira || [],
         motor: vistoria.fotos_motor || []
-      });
+      };
+      
+      console.log('Setting existing photos:', existingPhotos);
+      setUploadedPhotos(existingPhotos);
     }
   }, [vistoria, form]);
 
   const handlePhotosChange = (photos: Record<string, string[]>) => {
+    console.log('Photos updated in EditVistoria:', photos);
     setUploadedPhotos(photos);
   };
 
@@ -130,7 +135,7 @@ const EditVistoria: React.FC = () => {
     try {
       setIsLoading(true);
 
-      // Inclui as fotos nos dados atualizados
+      // Inclui as fotos atualizadas nos dados
       const formDataWithPhotos = {
         ...data,
         fotos_frente: uploadedPhotos.frente || [],
@@ -141,8 +146,14 @@ const EditVistoria: React.FC = () => {
         fotos_motor: uploadedPhotos.motor || []
       };
 
-      console.log('Atualizando vistoria com dados:', formDataWithPhotos);
+      console.log('Updating vistoria with photos:', formDataWithPhotos);
       await updateVistoria(id, formDataWithPhotos);
+      
+      toast({
+        title: "Sucesso",
+        description: "Vistoria atualizada com sucesso!",
+      });
+      
       navigate('/inspections');
     } catch (error) {
       console.error('Erro ao atualizar vistoria:', error);
@@ -178,6 +189,7 @@ const EditVistoria: React.FC = () => {
           variant="outline"
           onClick={() => navigate('/inspections')}
           className="flex items-center gap-2"
+          disabled={isLoading}
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar

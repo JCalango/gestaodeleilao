@@ -58,14 +58,19 @@ const PhotosCard: React.FC<PhotosCardProps> = ({ vistoria }) => {
             
             return (
               <div key={category.key}>
-                <h4 className="font-medium text-slate-900 mb-3">{category.label}</h4>
+                <h4 className="font-medium text-slate-900 mb-3">{category.label} ({category.photos.length})</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                   {category.photos.map((photo, index) => (
                     <div key={index} className="relative group">
                       <img
                         src={photo}
                         alt={`${category.label} ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg border border-slate-200"
+                        className="w-full h-24 object-cover rounded-lg border border-slate-200 cursor-pointer transition-transform hover:scale-105"
+                        onClick={() => setSelectedPhoto(photo)}
+                        onError={(e) => {
+                          console.error('Error loading image:', photo);
+                          e.currentTarget.src = '/placeholder.svg';
+                        }}
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all rounded-lg flex items-center justify-center">
                         <Button
@@ -107,6 +112,10 @@ const PhotosCard: React.FC<PhotosCardProps> = ({ vistoria }) => {
                 src={selectedPhoto}
                 alt="Foto ampliada"
                 className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                onError={(e) => {
+                  console.error('Error loading enlarged image:', selectedPhoto);
+                  e.currentTarget.src = '/placeholder.svg';
+                }}
               />
             </div>
           )}

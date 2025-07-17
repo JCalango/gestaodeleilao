@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Camera, Upload, X, Image, AlertCircle, Check, Loader2 } from 'lucide-react';
+import { Camera, Upload, X, Image, AlertCircle, Loader2, RotateCcw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -38,9 +38,17 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
   const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({});
 
+  // Sincronizar fotos quando initialPhotos mudar
   useEffect(() => {
+    console.log('PhotoUploadSection: initialPhotos changed:', initialPhotos);
     setPhotos(initialPhotos);
   }, [initialPhotos]);
+
+  // Notificar mudanças nas fotos
+  useEffect(() => {
+    console.log('PhotoUploadSection: photos state changed:', photos);
+    onPhotosChange(photos);
+  }, [photos, onPhotosChange]);
 
   const validateFile = (file: File): string | null => {
     const maxSize = 10 * 1024 * 1024; // 10MB
@@ -61,7 +69,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     return new Promise((resolve) => {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = document.createElement('img'); // Fixed: use document.createElement instead of new Image()
+      const img = document.createElement('img');
 
       img.onload = () => {
         const maxWidth = 1920;
@@ -102,7 +110,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
           0.8
         );
 
-        // Clean up the object URL
         URL.revokeObjectURL(img.src);
       };
 
@@ -117,23 +124,18 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
 
   const uploadPhoto = async (file: File, section: string): Promise<string | null> => {
     try {
-      // Validar arquivo
       const validationError = validateFile(file);
       if (validationError) {
         throw new Error(validationError);
       }
 
-      // Comprimir imagem
       const compressedFile = await compressImage(file);
       
-      const fileExt = 'jpg'; // Sempre usar JPG após compressão
+      const fileExt = 'jpg';
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `vistoria-fotos/${section}/${fileName}`;
 
-      console.log(`Iniciando upload: ${filePath}, Tamanho: ${compressedFile.size} bytes`);
-
-      // Upload com progresso simulado
-      setUploadProgress(prev => ({ ...prev, [section]: 20 }));
+      console.log(`Uploading photo: ${filePath}, Size: ${compressedFile.size} bytes`);
 
       const { error: uploadError } = await supabase.storage
         .from('vistoria-fotos')
@@ -142,10 +144,8 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
           upsert: false
         });
 
-      setUploadProgress(prev => ({ ...prev, [section]: 80 }));
-
       if (uploadError) {
-        console.error('Erro no upload:', uploadError);
+        console.error('Upload error:', uploadError);
         throw new Error(`Erro no upload: ${uploadError.message}`);
       }
 
@@ -153,12 +153,10 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
         .from('vistoria-fotos')
         .getPublicUrl(filePath);
 
-      setUploadProgress(prev => ({ ...prev, [section]: 100 }));
-      
-      console.log(`Upload concluído: ${data.publicUrl}`);
+      console.log(`Upload completed: ${data.publicUrl}`);
       return data.publicUrl;
     } catch (error) {
-      console.error('Erro ao fazer upload da foto:', error);
+      console.error('Error uploading photo:', error);
       throw error;
     }
   };
@@ -166,7 +164,6 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
   const handleFileUpload = async (files: FileList | null, section: string) => {
     if (!files || files.length === 0) return;
 
-    // Limpar erros anteriores
     setUploadErrors(prev => ({ ...prev, [section]: '' }));
     setUploading(prev => ({ ...prev, [section]: true }));
     setUploadProgress(prev => ({ ...prev, [section]: 0 }));
@@ -174,11 +171,11 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     try {
       const uploadPromises = Array.from(files).map(async (file, index) => {
         try {
-          setUploadProgress(prev => ({ ...prev, [section]: (index + 1) * 10 }));
+          setUploadProgress(prev => ({ ...prev, [section]: ((index + 1) / files.length) * 80 }));
           const url = await uploadPhoto(file, section);
           return url;
         } catch (error) {
-          console.error(`Erro no upload do arquivo ${index + 1}:`, error);
+          console.error(`Error uploading file ${index + 1}:`, error);
           return null;
         }
       });
@@ -187,14 +184,16 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
       const validUrls = uploadedUrls.filter((url): url is string => url !== null);
       const failedCount = uploadedUrls.length - validUrls.length;
       
+      setUploadProgress(prev => ({ ...prev, [section]: 100 }));
+
       if (validUrls.length > 0) {
         const updatedPhotos = {
           ...photos,
           [section]: [...(photos[section] || []), ...validUrls]
         };
         
+        console.log(`Successfully uploaded ${validUrls.length} photos for section ${section}`);
         setPhotos(updatedPhotos);
-        onPhotosChange(updatedPhotos);
         
         toast({
           title: "Sucesso",
@@ -209,7 +208,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
         }));
       }
     } catch (error) {
-      console.error('Erro geral no upload:', error);
+      console.error('General upload error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido no upload';
       setUploadErrors(prev => ({ ...prev, [section]: errorMessage }));
       
@@ -242,10 +241,12 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
         .remove([filePath]);
 
       if (error) {
-        console.error('Erro ao remover arquivo do storage:', error);
+        console.error('Error removing file from storage:', error);
+      } else {
+        console.log(`File removed from storage: ${filePath}`);
       }
     } catch (error) {
-      console.error('Erro ao processar URL da foto:', error);
+      console.error('Error processing photo URL:', error);
     }
 
     // Remover da lista local
@@ -255,12 +256,59 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     };
     
     setPhotos(updatedPhotos);
-    onPhotosChange(updatedPhotos);
     
     toast({
       title: "Foto removida",
       description: "A foto foi removida com sucesso.",
     });
+  };
+
+  const clearAllPhotos = async (section: string) => {
+    const sectionPhotos = photos[section] || [];
+    if (sectionPhotos.length === 0) return;
+
+    try {
+      // Remover todas as fotos do storage
+      const removePromises = sectionPhotos.map(async (photoUrl) => {
+        try {
+          const url = new URL(photoUrl);
+          const pathParts = url.pathname.split('/');
+          const filePath = pathParts.slice(-3).join('/');
+          
+          const { error } = await supabase.storage
+            .from('vistoria-fotos')
+            .remove([filePath]);
+
+          if (error) {
+            console.error('Error removing file from storage:', error);
+          }
+        } catch (error) {
+          console.error('Error processing photo URL:', error);
+        }
+      });
+
+      await Promise.all(removePromises);
+      
+      // Limpar da lista local
+      const updatedPhotos = {
+        ...photos,
+        [section]: []
+      };
+      
+      setPhotos(updatedPhotos);
+      
+      toast({
+        title: "Fotos removidas",
+        description: `Todas as fotos de ${photoSections.find(s => s.key === section)?.label} foram removidas.`,
+      });
+    } catch (error) {
+      console.error('Error clearing photos:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao remover fotos. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const replacePhoto = (section: string, index: number) => {
@@ -296,9 +344,23 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
       <CardContent className="space-y-6">
         {photoSections.map((section) => (
           <div key={section.key} className="space-y-3">
-            <div>
-              <Label className="text-sm font-medium">{section.label}</Label>
-              <p className="text-xs text-slate-600">{section.description}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">{section.label}</Label>
+                <p className="text-xs text-slate-600">{section.description}</p>
+              </div>
+              {photos[section.key] && photos[section.key].length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => clearAllPhotos(section.key)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <RotateCcw className="w-4 h-4 mr-1" />
+                  Limpar Todas
+                </Button>
+              )}
             </div>
             
             <div className="flex items-center gap-3">
@@ -316,14 +378,18 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
                 size="sm"
                 disabled={uploading[section.key]}
                 onClick={() => {
-                  const input = document.querySelector(`input[type="file"]`) as HTMLInputElement;
-                  input?.click();
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
+                  input.multiple = true;
+                  input.onchange = (e) => handleFileUpload((e.target as HTMLInputElement).files, section.key);
+                  input.click();
                 }}
               >
                 {uploading[section.key] ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {uploadProgress[section.key] || 0}%
+                    {Math.round(uploadProgress[section.key] || 0)}%
                   </>
                 ) : (
                   <>
@@ -365,7 +431,7 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
                       className="w-full h-24 object-cover rounded-lg border cursor-pointer transition-transform hover:scale-105"
                       onClick={() => window.open(photo, '_blank')}
                       onError={(e) => {
-                        console.error('Erro ao carregar imagem:', photo);
+                        console.error('Error loading image:', photo);
                         e.currentTarget.src = '/placeholder.svg';
                       }}
                     />

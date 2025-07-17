@@ -15,11 +15,13 @@ import DebtInfoSection from '@/components/forms/DebtInfoSection';
 import SaleInfoSection from '@/components/forms/SaleInfoSection';
 import FinancialInfoSection from '@/components/forms/FinancialInfoSection';
 import PhotoUploadSection from '@/components/forms/PhotoUploadSection';
+import { toast } from '@/hooks/use-toast';
 
 const NewVistoria: React.FC = () => {
   const navigate = useNavigate();
   const { addVistoria } = useVistorias();
   const [uploadedPhotos, setUploadedPhotos] = useState<Record<string, string[]>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<VistoriaFormData>({
     defaultValues: {
@@ -30,29 +32,51 @@ const NewVistoria: React.FC = () => {
       restricao_administrativa: false,
       alienacao_fiduciaria: false,
       possui_comunicacao_venda: false,
-      motor_alterado: '', // Added default value for motor_alterado
+      motor_alterado: 'nao',
     },
   });
 
   const handlePhotosChange = (photos: Record<string, string[]>) => {
+    console.log('Photos updated in NewVistoria:', photos);
     setUploadedPhotos(photos);
   };
 
-  const onSubmit = (data: VistoriaFormData) => {
-    // Include photo URLs in the form data
-    const formDataWithPhotos = {
-      ...data,
-      fotos_frente: uploadedPhotos.frente || [],
-      fotos_lateral_esquerda: uploadedPhotos.lateral_esquerda || [],
-      fotos_lateral_direita: uploadedPhotos.lateral_direita || [],
-      fotos_chassi: uploadedPhotos.chassi || [],
-      fotos_traseira: uploadedPhotos.traseira || [],
-      fotos_motor: uploadedPhotos.motor || []
-    };
+  const onSubmit = async (data: VistoriaFormData) => {
+    if (isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Incluir as URLs das fotos nos dados do formulário
+      const formDataWithPhotos = {
+        ...data,
+        fotos_frente: uploadedPhotos.frente || [],
+        fotos_lateral_esquerda: uploadedPhotos.lateral_esquerda || [],
+        fotos_lateral_direita: uploadedPhotos.lateral_direita || [],
+        fotos_chassi: uploadedPhotos.chassi || [],
+        fotos_traseira: uploadedPhotos.traseira || [],
+        fotos_motor: uploadedPhotos.motor || []
+      };
 
-    console.log('Form submitted with photos:', formDataWithPhotos);
-    addVistoria(formDataWithPhotos);
-    navigate('/inspections');
+      console.log('Submitting vistoria with photos:', formDataWithPhotos);
+      await addVistoria(formDataWithPhotos);
+      
+      toast({
+        title: "Sucesso",
+        description: "Vistoria criada com sucesso!",
+      });
+      
+      navigate('/inspections');
+    } catch (error) {
+      console.error('Erro ao criar vistoria:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao criar vistoria. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -62,6 +86,7 @@ const NewVistoria: React.FC = () => {
           variant="outline"
           onClick={() => navigate('/inspections')}
           className="flex items-center gap-2"
+          disabled={isSubmitting}
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar
@@ -88,12 +113,17 @@ const NewVistoria: React.FC = () => {
               type="button"
               variant="outline"
               onClick={() => navigate('/inspections')}
+              disabled={isSubmitting}
             >
               Cancelar
             </Button>
-            <Button type="submit" className="flex items-center gap-2">
+            <Button 
+              type="submit" 
+              className="flex items-center gap-2"
+              disabled={isSubmitting}
+            >
               <Save className="w-4 h-4" />
-              Salvar Vistoria
+              {isSubmitting ? 'Salvando...' : 'Salvar Vistoria'}
             </Button>
           </div>
         </form>
