@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useVistorias } from '@/contexts/VistoriaContext';
+import { useAuth } from '@/contexts/AuthContext';
 import VehicleInfoCard from '@/components/inspection/VehicleInfoCard';
 import OwnerInfoCard from '@/components/inspection/OwnerInfoCard';
 import DebtsInfoCard from '@/components/inspection/DebtsInfoCard';
@@ -19,6 +20,7 @@ const InspectionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getVistoriaById } = useVistorias();
+  const { user, isAdmin } = useAuth();
 
   const vistoria = id ? getVistoriaById(id) : null;
 
@@ -36,6 +38,17 @@ const InspectionDetails: React.FC = () => {
       }
     }
   };
+
+  const handleEdit = () => {
+    if (id) {
+      navigate(`/inspections/edit/${id}`);
+    }
+  };
+
+  // Verificar se o usuário pode editar a vistoria
+  const canEdit = vistoria && user && (
+    isAdmin() || vistoria.created_by === user.id
+  );
 
   if (!vistoria) {
     return (
@@ -76,10 +89,16 @@ const InspectionDetails: React.FC = () => {
         </div>
         
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Edit2 className="w-4 h-4" />
-            Editar
-          </Button>
+          {canEdit && (
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={handleEdit}
+            >
+              <Edit2 className="w-4 h-4" />
+              Editar
+            </Button>
+          )}
           <Button 
             onClick={handleGeneratePDF}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"

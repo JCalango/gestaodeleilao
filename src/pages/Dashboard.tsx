@@ -1,143 +1,115 @@
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
-import { Plus, Car, Users, FileText, AlertCircle } from 'lucide-react';
-import { useVistorias } from '@/contexts/VistoriaContext';
+import React, { useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import StatCard from '@/components/Dashboard/StatCard';
-import RecentInspections from '@/components/Dashboard/RecentInspections';
-import RestrictionStatsCard from '@/components/Dashboard/RestrictionStatsCard';
 import VehicleStatsCard from '@/components/Dashboard/VehicleStatsCard';
+import RestrictionStatsCard from '@/components/Dashboard/RestrictionStatsCard';
+import RecentInspections from '@/components/Dashboard/RecentInspections';
+import ActiveUsersCard from '@/components/users/ActiveUsersCard';
+import { useVistorias } from '@/contexts/VistoriaContext';
+import { useActiveUsers } from '@/hooks/useActiveUsers';
+import { 
+  FileText, 
+  Clock, 
+  CheckCircle, 
+  AlertTriangle,
+  Calendar
+} from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { vistorias, isLoading } = useVistorias();
+  const { logUserActivity } = useActiveUsers();
 
+  useEffect(() => {
+    // Log da atividade de visualização do dashboard
+    logUserActivity('dashboard_view', 'Usuário acessou o dashboard');
+  }, [logUserActivity]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-20 bg-gray-200 rounded" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Estatísticas básicas
   const totalVistorias = vistorias.length;
+  const vistoriasHoje = vistorias.filter(v => 
+    v.data_inspecao && 
+    new Date(v.data_inspecao).toDateString() === new Date().toDateString()
+  ).length;
+  
   const vistoriasComRestricao = vistorias.filter(v => 
     v.restricao_judicial || v.restricao_administrativa || v.furto_roubo
   ).length;
-  const vistoriasRecentes = vistorias.slice(0, 5);
 
-  // Mock active users count - in a real app, this would come from user activity data
-  const activeUsers = 15;
+  const vistoriasSemRestricao = totalVistorias - vistoriasComRestricao;
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-600 mt-2">Visão geral das vistorias de veículos</p>
+          <p className="text-slate-600">Visão geral do sistema de vistorias</p>
         </div>
-        
-        <Link to="/inspections/new">
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Vistoria
-          </Button>
-        </Link>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total de Vistorias"
           value={totalVistorias}
-          icon={Car}
-          trend={{ value: 12, isPositive: true }}
+          icon={FileText}
+          description="Vistorias cadastradas"
         />
-        
+        <StatCard
+          title="Vistorias Hoje"
+          value={vistoriasHoje}
+          icon={Calendar}
+          description="Realizadas hoje"
+          trend={vistoriasHoje > 0 ? "up" : undefined}
+        />
         <StatCard
           title="Com Restrições"
           value={vistoriasComRestricao}
-          icon={AlertCircle}
-          trend={{ value: 3, isPositive: false }}
-          color="red"
+          icon={AlertTriangle}
+          description="Veículos com restrições"
+          variant="warning"
         />
-        
         <StatCard
-          title="Este Mês"
-          value={vistorias.filter(v => {
-            const vistoriaDate = new Date(v.created_at || '');
-            const currentDate = new Date();
-            return vistoriaDate.getMonth() === currentDate.getMonth() && 
-                   vistoriaDate.getFullYear() === currentDate.getFullYear();
-          }).length}
-          icon={FileText}
-          trend={{ value: 8, isPositive: true }}
-          color="green"
-        />
-        
-        <StatCard
-          title="Usuários Ativos"
-          value={activeUsers}
-          icon={Users}
-          trend={{ value: 2, isPositive: true }}
-          color="blue"
+          title="Sem Restrições"
+          value={vistoriasSemRestricao}
+          icon={CheckCircle}
+          description="Veículos liberados"
+          variant="success"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <RecentInspections inspections={vistoriasRecentes} isLoading={isLoading} />
-        </div>
-        
-        <div className="space-y-6">
-          <RestrictionStatsCard vistorias={vistorias} />
-          <VehicleStatsCard vistorias={vistorias} />
-        </div>
-      </div>
-
+      {/* Detailed Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ações Rápidas</CardTitle>
-            <CardDescription>Acesso rápido às funcionalidades</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link to="/inspections/new" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Vistoria
-              </Button>
-            </Link>
-            
-            <Link to="/inspections" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="w-4 h-4 mr-2" />
-                Ver Todas as Vistorias
-              </Button>
-            </Link>
-            
-            <Link to="/users" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <Users className="w-4 h-4 mr-2" />
-                Gerenciar Usuários
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <VehicleStatsCard vistorias={vistorias} />
+        <RestrictionStatsCard vistorias={vistorias} />
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Estatísticas do Sistema</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-600">Taxa de Conclusão</span>
-              <span className="font-semibold">94%</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-600">Tempo Médio</span>
-              <span className="font-semibold">12 min</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-600">Satisfação</span>
-              <span className="font-semibold">4.8/5</span>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Recent Activity and Active Users */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2">
+          <RecentInspections vistorias={vistorias.slice(0, 10)} />
+        </div>
+        <div>
+          <ActiveUsersCard />
+        </div>
       </div>
     </div>
   );

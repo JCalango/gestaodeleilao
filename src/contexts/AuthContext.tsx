@@ -58,6 +58,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const logActivity = async (activityType: string, description?: string) => {
+    try {
+      await supabase.rpc('log_user_activity', {
+        p_activity_type: activityType,
+        p_description: description || null,
+        p_metadata: null
+      });
+    } catch (error) {
+      console.error('Error logging activity:', error);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -71,6 +83,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(() => {
             fetchProfile(session.user.id);
           }, 0);
+
+          // Log login activity
+          if (event === 'SIGNED_IN') {
+            setTimeout(() => {
+              logActivity('login', 'Usuário fez login no sistema');
+            }, 100);
+          }
         } else {
           setProfile(null);
         }
@@ -143,6 +162,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setLoading(true);
+      
+      // Log logout activity before signing out
+      if (user) {
+        await logActivity('logout', 'Usuário fez logout do sistema');
+      }
+      
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
