@@ -55,31 +55,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64">
+      <SheetContent side="left" className="w-64 bg-gradient-to-b from-blue-600 to-blue-800 text-white border-blue-700">
         <SheetHeader>
-          <SheetTitle>Menu</SheetTitle>
-          <SheetDescription>
+          <SheetTitle className="text-white text-lg font-bold">
+            Gestão de Leilão
+          </SheetTitle>
+          <SheetDescription className="text-blue-100">
             Navegue pelas opções do sistema.
           </SheetDescription>
         </SheetHeader>
-        <div className="mt-4">
+        <div className="mt-6">
           {menuItems.map((item) => (
             <Link
               key={item.label}
               to={item.path}
-              className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 transition-colors block"
+              className="flex items-center space-x-3 py-3 px-4 rounded-md hover:bg-blue-700 hover:bg-opacity-50 transition-colors block text-white"
               onClick={onClose}
             >
-              <item.icon className="w-4 h-4" />
-              <span>{item.label}</span>
+              <item.icon className="w-5 h-5" />
+              <span className="font-medium">{item.label}</span>
             </Link>
           ))}
           <Button
             variant="ghost"
-            className="w-full justify-start"
+            className="w-full justify-start mt-4 text-white hover:bg-blue-700 hover:bg-opacity-50"
             onClick={handleLogout}
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="mr-3 h-5 w-5" />
             Sair
           </Button>
         </div>

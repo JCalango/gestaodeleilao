@@ -59,31 +59,31 @@ const Settings = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <SettingsIcon className="w-8 h-8" />
-            Configurações
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-blue-800">
+            <SettingsIcon className="w-8 h-8 text-blue-600" />
+            Configurações do Sistema
           </h1>
-          <p className="text-muted-foreground">
-            Configure os logos e informações do sistema
+          <p className="text-blue-600 mt-2">
+            Configure os logos e informações do sistema de leilão
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Logos do Sistema */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Logos do Sistema</CardTitle>
+        <Card className="border-blue-200 shadow-md">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+            <CardTitle className="text-blue-800">Logos Institucionais</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-6">
             {/* Logo da Prefeitura */}
             <div>
-              <Label htmlFor="prefeitura-logo" className="text-sm font-medium">
-                Logo da Prefeitura
+              <Label htmlFor="prefeitura-logo" className="text-sm font-medium text-blue-700">
+                Logo da Prefeitura de Guanambi
               </Label>
               <div className="mt-2 space-y-2">
                 {prefeituraLogo && (
-                  <div className="w-32 h-32 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                  <div className="w-32 h-32 border-2 border-blue-200 rounded-lg flex items-center justify-center overflow-hidden bg-white">
                     <img
                       src={prefeituraLogo}
                       alt="Logo da Prefeitura"
@@ -102,8 +102,9 @@ const Settings = () => {
                     }
                   }}
                   disabled={isLoading}
+                  className="border-blue-200 focus:border-blue-400"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-blue-600">
                   Recomendado: PNG ou JPG, máximo 2MB
                 </p>
               </div>
@@ -111,12 +112,12 @@ const Settings = () => {
 
             {/* Logo da SMTRAN */}
             <div>
-              <Label htmlFor="smtran-logo" className="text-sm font-medium">
+              <Label htmlFor="smtran-logo" className="text-sm font-medium text-blue-700">
                 Logo da SMTRAN
               </Label>
               <div className="mt-2 space-y-2">
                 {smtranLogo && (
-                  <div className="w-32 h-32 border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                  <div className="w-32 h-32 border-2 border-blue-200 rounded-lg flex items-center justify-center overflow-hidden bg-white">
                     <img
                       src={smtranLogo}
                       alt="Logo da SMTRAN"
@@ -135,8 +136,9 @@ const Settings = () => {
                     }
                   }}
                   disabled={isLoading}
+                  className="border-blue-200 focus:border-blue-400"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-blue-600">
                   Recomendado: PNG ou JPG, máximo 2MB
                 </p>
               </div>
@@ -145,17 +147,17 @@ const Settings = () => {
         </Card>
 
         {/* Configurações de Notificações */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
+        <Card className="border-blue-200 shadow-md">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+            <CardTitle className="flex items-center gap-2 text-blue-800">
+              <User className="w-5 h-5 text-blue-600" />
               Configurações de Notificações
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <form onSubmit={handlePresidenteSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="presidente" className="text-sm font-medium">
+                <Label htmlFor="presidente" className="text-sm font-medium text-blue-700">
                   Nome do Presidente da Comissão de Leilão
                 </Label>
                 <Input
@@ -164,14 +166,18 @@ const Settings = () => {
                   value={presidenteName}
                   onChange={(e) => setPresidenteName(e.target.value)}
                   placeholder="Digite o nome completo do presidente"
-                  className="mt-2"
+                  className="mt-2 border-blue-200 focus:border-blue-400"
                   disabled={isLoading}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-blue-600 mt-1">
                   Este nome aparecerá nas notificações de apreensão como assinatura
                 </p>
               </div>
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
                 <Save className="w-4 h-4 mr-2" />
                 Salvar Configurações
               </Button>
