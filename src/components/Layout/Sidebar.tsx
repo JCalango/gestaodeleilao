@@ -1,82 +1,89 @@
-
-import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Home, 
-  Car, 
-  Plus, 
-  Search, 
-  Settings, 
-  BarChart3, 
+import React from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import {
+  BarChart3,
   FileText,
-  Users
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+  Settings,
+  Users,
+  LogOut,
+  Bell,
+} from "lucide-react";
 
 interface SidebarProps {
-  isCollapsed: boolean;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
-  const location = useLocation();
-  const { profile } = useAuth();
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/auth");
+    } catch (error) {
+      console.error("Failed to logout", error);
+    }
+  };
 
   const menuItems = [
-    { icon: Home, label: 'Dashboard', href: '/' },
-    { icon: Car, label: 'Inspeções', href: '/inspections' },
-    { icon: Plus, label: 'Nova Inspeção', href: '/inspections/new' },
-    { icon: Search, label: 'Buscar', href: '/search' },
-    { icon: BarChart3, label: 'Relatórios', href: '/reports' },
-    { icon: FileText, label: 'Documentos', href: '/documents' },
-    ...(profile?.role === 'admin' ? [
-      { icon: Users, label: 'Usuários', href: '/users' },
-    ] : []),
-    { icon: Settings, label: 'Configurações', href: '/settings' },
+    { icon: BarChart3, label: "Dashboard", path: "/" },
+    { icon: FileText, label: "Vistorias", path: "/inspections" },
+    { icon: Bell, label: "Notificações", path: "/notifications" },
+    { icon: Settings, label: "Configurações", path: "/settings" },
+    { icon: Users, label: "Usuários", path: "/users" },
   ];
 
   return (
-    <div className={cn(
-      'fixed left-0 top-0 h-full bg-slate-900 text-white transition-all duration-300 z-50',
-      isCollapsed ? 'w-16' : 'w-64'
-    )}>
-      <div className="p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Car className="w-5 h-5" />
-          </div>
-          {!isCollapsed && (
-            <div>
-              <h1 className="font-bold text-lg">Guanambi Leilões</h1>
-              <p className="text-xs text-slate-400">Gestão de Leilões</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <nav className="mt-8">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.href;
-          
-          return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="sm" className="p-0">
+          <Menu className="h-5 w-5" />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-64">
+        <SheetHeader>
+          <SheetTitle>Menu</SheetTitle>
+          <SheetDescription>
+            Navegue pelas opções do sistema.
+          </SheetDescription>
+        </SheetHeader>
+        <div className="mt-4">
+          {menuItems.map((item) => (
             <Link
-              key={item.href}
-              to={item.href}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 mx-2 rounded-lg transition-colors',
-                isActive 
-                  ? 'bg-blue-600 text-white' 
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-              )}
+              key={item.label}
+              to={item.path}
+              className="flex items-center space-x-2 py-2 px-4 rounded-md hover:bg-gray-100 transition-colors block"
+              onClick={onClose}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              {!isCollapsed && <span className="font-medium">{item.label}</span>}
+              <item.icon className="w-4 h-4" />
+              <span>{item.label}</span>
             </Link>
-          );
-        })}
-      </nav>
-    </div>
+          ))}
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sair
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
