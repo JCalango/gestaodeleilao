@@ -59,6 +59,54 @@ export const useSystemSettings = () => {
     },
   });
 
+  const uploadLogoMutation = useMutation({
+    mutationFn: async ({ type, file }: { type: 'prefeitura' | 'smtran'; file: File }) => {
+      // Upload file to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${type}-logo.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('system-logos')
+        .upload(filePath, file, { 
+          upsert: true,
+          contentType: file.type 
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('system-logos')
+        .getPublicUrl(filePath);
+
+      if (!urlData?.publicUrl) throw new Error('Failed to get public URL');
+
+      // Update system settings with the new logo URL
+      const settingKey = type === 'prefeitura' ? 'prefeitura_logo' : 'smtran_logo';
+      
+      const { data, error } = await supabase
+        .from('system_settings')
+        .upsert({ 
+          setting_key: settingKey, 
+          setting_value: urlData.publicUrl,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['system-settings'] });
+    },
+    onError: (error) => {
+      console.error('Logo upload error:', error);
+      throw error;
+    },
+  });
+
   const getSetting = (key: string): string | null => {
     const setting = settings.find(s => s.setting_key === key);
     return setting?.setting_value || null;
@@ -69,7 +117,9 @@ export const useSystemSettings = () => {
     isLoading,
     updateSetting: (key: string, value: string | null) => 
       updateSettingMutation.mutate({ key, value }),
-    isUpdating: updateSettingMutation.isPending,
+    uploadLogo: (type: 'prefeitura' | 'smtran', file: File) =>
+      uploadLogoMutation.mutate({ type, file }),
+    isUpdating: updateSettingMutation.isPending || uploadLogoMutation.isPending,
     getSetting,
   };
 };
