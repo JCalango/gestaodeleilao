@@ -35,7 +35,7 @@ const InspectionsList: React.FC = () => {
   };
 
   const handleEdit = (vistoriaId: string) => {
-    navigate(`/inspections/edit/${vistoriaId}`);
+    navigate(`/edit-vistoria/${vistoriaId}`);
   };
 
   if (isLoading) {
@@ -54,7 +54,7 @@ const InspectionsList: React.FC = () => {
           <p className="text-slate-600 mt-2">Gerencie todas as vistorias de veículos</p>
         </div>
         
-        <Link to="/inspections/new">
+        <Link to="/new-vistoria">
           <Button className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-4 h-4 mr-2" />
             Nova Vistoria
@@ -203,7 +203,7 @@ const InspectionsList: React.FC = () => {
             <div className="text-center py-12">
               <p className="text-slate-500">Nenhuma vistoria encontrada.</p>
               {vistorias.length === 0 && (
-                <Link to="/inspections/new" className="inline-block mt-4">
+                <Link to="/new-vistoria" className="inline-block mt-4">
                   <Button>
                     <Plus className="w-4 h-4 mr-2" />
                     Cadastrar primeira vistoria
