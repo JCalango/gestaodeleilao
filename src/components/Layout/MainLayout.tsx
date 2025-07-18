@@ -9,21 +9,22 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Sidebar isCollapsed={sidebarCollapsed} />
-      <Header onToggleSidebar={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
+      <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
+      <Header onToggleSidebar={toggleSidebar} sidebarCollapsed={false} />
       
-      <main className={cn(
-        'transition-all duration-300 pt-16',
-        sidebarCollapsed ? 'ml-16' : 'ml-64'
-      )}>
+      <main className="pt-16">
         <div className="p-6">
           {children}
         </div>

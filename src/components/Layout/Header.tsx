@@ -13,10 +13,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onToggleSidebar, sidebarCollapsed }) => {
   return (
-    <header className={cn(
-      'fixed top-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 transition-all duration-300 z-40',
-      sidebarCollapsed ? 'left-16' : 'left-64'
-    )}>
+    <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-40">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
