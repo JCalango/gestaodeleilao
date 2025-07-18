@@ -71,28 +71,26 @@ const Dashboard: React.FC = () => {
           title="Total de Vistorias"
           value={totalVistorias}
           icon={FileText}
-          description="Vistorias cadastradas"
+          color="blue"
         />
         <StatCard
           title="Vistorias Hoje"
           value={vistoriasHoje}
           icon={Calendar}
-          description="Realizadas hoje"
-          trend={vistoriasHoje > 0 ? "up" : undefined}
+          color="blue"
+          trend={vistoriasHoje > 0 ? { value: vistoriasHoje, isPositive: true } : undefined}
         />
         <StatCard
           title="Com Restrições"
           value={vistoriasComRestricao}
           icon={AlertTriangle}
-          description="Veículos com restrições"
-          variant="warning"
+          color="red"
         />
         <StatCard
           title="Sem Restrições"
           value={vistoriasSemRestricao}
           icon={CheckCircle}
-          description="Veículos liberados"
-          variant="success"
+          color="green"
         />
       </div>
 
@@ -105,7 +103,7 @@ const Dashboard: React.FC = () => {
       {/* Recent Activity and Active Users */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
-          <RecentInspections vistorias={vistorias.slice(0, 10)} />
+          <RecentInspections inspections={vistorias.slice(0, 10)} isLoading={isLoading} />
         </div>
         <div>
           <ActiveUsersCard />
