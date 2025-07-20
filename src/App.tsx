@@ -18,6 +18,7 @@ import MainLayout from './components/Layout/MainLayout';
 import AuthGuard from './components/Auth/AuthGuard';
 import NotFound from './pages/NotFound';
 import Notifications from './pages/Notifications';
+import NotificationSettings from './pages/NotificationSettings';
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ function App() {
                       <Route path="/new-vistoria" element={<NewVistoria />} />
                       <Route path="/edit-vistoria/:id" element={<EditVistoria />} />
                       <Route path="/notifications" element={<Notifications />} />
+                      <Route path="/notification-settings" element={<NotificationSettings />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/users" element={<UsersManagement />} />
                       <Route path="*" element={<NotFound />} />

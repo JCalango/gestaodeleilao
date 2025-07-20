@@ -1,0 +1,6 @@
+-- Inserir configuração para o texto da notificação
+INSERT INTO public.system_settings (setting_key, setting_value) 
+VALUES ('notification_text', 'Informamos a V. Sa. que o veículo descrito abaixo encontra-se apreendido e recolhido no depósito desta Superintendência de Trânsito de Guanambi (SMTRAN-GBI), nos termos do Art. 328 do Código de Trânsito Brasileiro (CTB), alterado pela Lei nº. 13.160/2015, e da Resolução nº. 623/2016 do Conselho Nacional de Trânsito (CONTRAN).
+Para evitar a execução do mesmo, solicitamos seu comparecimento a fim de restituir-lhe o referido veículo, após quitação dos débitos existentes e outras eventuais despesas, e promova sua retirada do depósito, sob pena de o não cumprimento desta Notificação no prazo de 30 (trinta) dias, ser levado à hasta pública.
+Para que seja feita a retirada do veículo, V. Sa. deverá comparecer, de segunda a sexta, no horário de atendimento ao público, no Setor de Liberação de Veículo, situado na av. Joaquim Chaves, nº 401, B. Santo Antônio, Guanambi – Bahia, ou entre em contato pelo número 077 988029862.')
+ON CONFLICT (setting_key) DO NOTHING;

@@ -44,6 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { icon: BarChart3, label: "Dashboard", path: "/" },
     { icon: FileText, label: "Vistorias", path: "/inspections" },
     { icon: Bell, label: "Notificações", path: "/notifications" },
+    { icon: FileText, label: "Config. Notificações", path: "/notification-settings" },
     { icon: Settings, label: "Configurações", path: "/settings" },
     { icon: Users, label: "Usuários", path: "/users" },
   ];

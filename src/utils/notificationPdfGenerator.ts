@@ -3,28 +3,47 @@ import { Vistoria } from '@/types/vistoria';
 import { NotificationRecipient } from '@/types/notification';
 import { supabase } from '@/integrations/supabase/client';
 
-const getSystemLogos = async () => {
+const getSystemSettings = async () => {
   try {
-    console.log('Fetching system logos from database...');
+    console.log('Fetching system settings from database...');
     const { data: settings, error } = await supabase
       .from('system_settings')
       .select('*')
-      .in('setting_key', ['prefeitura_logo', 'smtran_logo', 'presidente_comissao_leilao']);
+      .in('setting_key', ['prefeitura_logo', 'smtran_logo', 'presidente_comissao_leilao', 'notification_text']);
 
     if (error) {
-      console.error('Error fetching logos:', error);
-      return { prefeituraLogo: null, smtranLogo: null, presidenteName: 'Nome do Presidente' };
+      console.error('Error fetching settings:', error);
+      return { 
+        prefeituraLogo: null, 
+        smtranLogo: null, 
+        presidenteName: 'Nome do Presidente',
+        notificationText: getDefaultNotificationText()
+      };
     }
 
     const prefeituraLogo = settings?.find(s => s.setting_key === 'prefeitura_logo')?.setting_value || null;
     const smtranLogo = settings?.find(s => s.setting_key === 'smtran_logo')?.setting_value || null;
     const presidenteName = settings?.find(s => s.setting_key === 'presidente_comissao_leilao')?.setting_value || 'Nome do Presidente';
+    const notificationText = settings?.find(s => s.setting_key === 'notification_text')?.setting_value || getDefaultNotificationText();
 
-    return { prefeituraLogo, smtranLogo, presidenteName };
+    return { prefeituraLogo, smtranLogo, presidenteName, notificationText };
   } catch (error) {
-    console.error('Error fetching system logos:', error);
-    return { prefeituraLogo: null, smtranLogo: null, presidenteName: 'Nome do Presidente' };
+    console.error('Error fetching system settings:', error);
+    return { 
+      prefeituraLogo: null, 
+      smtranLogo: null, 
+      presidenteName: 'Nome do Presidente',
+      notificationText: getDefaultNotificationText()
+    };
   }
+};
+
+const getDefaultNotificationText = () => {
+  return `Informamos a V. Sa. que o veículo descrito abaixo encontra-se apreendido e recolhido no depósito desta Superintendência de Trânsito de Guanambi (SMTRAN-GBI), nos termos do Art. 328 do Código de Trânsito Brasileiro (CTB), alterado pela Lei nº. 13.160/2015, e da Resolução nº. 623/2016 do Conselho Nacional de Trânsito (CONTRAN).
+
+Para evitar a execução do mesmo, solicitamos seu comparecimento a fim de restituir-lhe o referido veículo, após quitação dos débitos existentes e outras eventuais despesas, e promova sua retirada do depósito, sob pena de o não cumprimento desta Notificação no prazo de 30 (trinta) dias, ser levado à hasta pública.
+
+Para que seja feita a retirada do veículo, V. Sa. deverá comparecer, de segunda a sexta, no horário de atendimento ao público, no Setor de Liberação de Veículo, situado na av. Joaquim Chaves, nº 401, B. Santo Antônio, Guanambi – Bahia, ou entre em contato pelo número 077 988029862.`;
 };
 
 const getRecipientData = (vistoria: Vistoria, recipientType: NotificationRecipient) => {
@@ -55,8 +74,8 @@ const getRecipientData = (vistoria: Vistoria, recipientType: NotificationRecipie
 export const generateNotificationPDF = async (vistoria: Vistoria, recipientType: NotificationRecipient) => {
   console.log('Starting notification PDF generation for vistoria:', vistoria.placa);
   
-  // Buscar logos e configurações do sistema
-  const { prefeituraLogo, smtranLogo, presidenteName } = await getSystemLogos();
+  // Buscar configurações do sistema
+  const { prefeituraLogo, smtranLogo, presidenteName, notificationText } = await getSystemSettings();
   
   // Obter dados do destinatário
   const recipient = getRecipientData(vistoria, recipientType);
@@ -328,11 +347,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
 
         <!-- Content -->
         <div class="content">
-          <p>Informamos a V. Sa. que o veículo descrito abaixo encontra-se apreendido e recolhido no depósito desta Superintendência de Trânsito de Guanambi (SMTRAN-GBI), nos termos do Art. 328 do Código de Trânsito Brasileiro (CTB), alterado pela Lei nº. 13.160/2015, e da Resolução nº. 623/2016 do Conselho Nacional de Trânsito (CONTRAN).</p>
-
-          <p>Para evitar a execução do mesmo, solicitamos seu comparecimento a fim de restituir-lhe o referido veículo, após quitação dos débitos existentes e outras eventuais despesas, e promova sua retirada do depósito, sob pena de o não cumprimento desta Notificação no prazo de 30 (trinta) dias, ser levado à hasta pública.</p>
-
-          <p>Para que seja feita a retirada do veículo, V. Sa. deverá comparecer, de segunda a sexta, no horário de atendimento ao público, no Setor de Liberação de Veículo, situado na av. Joaquim Chaves, nº 401, B. Santo Antônio, Guanambi – Bahia, ou entre em contato pelo número 077 988029862.</p>
+          ${notificationText.split('\n\n').map(paragraph => `<p>${paragraph}</p>`).join('\n          ')}
         </div>
 
         <!-- Vehicle Information -->
