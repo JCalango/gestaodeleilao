@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -7,6 +6,7 @@ import { Vistoria, VistoriaFormData } from '@/types/vistoria';
 interface VistoriaContextType {
   vistorias: Vistoria[];
   isLoading: boolean;
+  error?: string | null;
   addVistoria: (vistoria: VistoriaFormData) => Promise<void>;
   updateVistoria: (id: string, vistoria: Partial<Vistoria>) => Promise<void>;
   deleteVistoria: (id: string) => Promise<void>;
@@ -19,10 +19,14 @@ const VistoriaContext = createContext<VistoriaContextType | undefined>(undefined
 export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [vistorias, setVistorias] = useState<Vistoria[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchVistorias = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+      console.log('Buscando vistorias...');
+      
       const { data, error } = await supabase
         .from('vistorias')
         .select('*')
@@ -30,6 +34,7 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       if (error) {
         console.error('Error fetching vistorias:', error);
+        setError('Erro ao carregar vistorias');
         toast({
           title: "Erro",
           description: "Erro ao carregar vistorias",
@@ -39,8 +44,10 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
 
       setVistorias(data || []);
+      console.log('Vistorias carregadas:', data?.length || 0);
     } catch (error) {
       console.error('Error:', error);
+      setError('Erro ao carregar vistorias');
       toast({
         title: "Erro",
         description: "Erro ao carregar vistorias",
@@ -218,18 +225,34 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
     await fetchVistorias();
   };
 
+  // Buscar dados inicialmente
   useEffect(() => {
     fetchVistorias();
+  }, []);
+
+  // Escutar eventos de refresh automático
+  useEffect(() => {
+    const handleRefresh = () => {
+      console.log('Evento de refresh recebido - atualizando vistorias...');
+      fetchVistorias();
+    };
+
+    window.addEventListener('refresh-app-data', handleRefresh);
+    
+    return () => {
+      window.removeEventListener('refresh-app-data', handleRefresh);
+    };
   }, []);
 
   const value: VistoriaContextType = {
     vistorias,
     isLoading,
+    error,
     addVistoria,
     updateVistoria,
     deleteVistoria,
     getVistoriaById,
-    refreshVistorias,
+    refreshVistorias: fetchVistorias,
   };
 
   return (
