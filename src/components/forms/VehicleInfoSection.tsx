@@ -169,13 +169,13 @@ const VehicleInfoSection: React.FC<VehicleInfoSectionProps> = ({ control }) => {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="gasolina">Gasolina</SelectItem>
-                  <SelectItem value="etanol">Etanol</SelectItem>
-                  <SelectItem value="flex">Flex</SelectItem>
-                  <SelectItem value="diesel">Diesel</SelectItem>
-                  <SelectItem value="gnv">GNV</SelectItem>
-                  <SelectItem value="eletrico">Elétrico</SelectItem>
-                  <SelectItem value="hibrido">Híbrido</SelectItem>
+                  <SelectItem value="GASOLINA">Gasolina</SelectItem>
+                  <SelectItem value="ALCOOL">ALCOOL</SelectItem>
+                  <SelectItem value="ALCOOL/GASOLINA">ALCOOL/GASOLINA</SelectItem>
+                  <SelectItem value="Diesel">Diesel</SelectItem>
+                  <SelectItem value="GNV">GNV</SelectItem>
+                  <SelectItem value="Eletrico">Elétrico</SelectItem>
+                  <SelectItem value="Hibrido">Híbrido</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

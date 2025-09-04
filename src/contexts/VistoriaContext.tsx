@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -6,7 +7,6 @@ import { Vistoria, VistoriaFormData } from '@/types/vistoria';
 interface VistoriaContextType {
   vistorias: Vistoria[];
   isLoading: boolean;
-  error?: string | null;
   addVistoria: (vistoria: VistoriaFormData) => Promise<void>;
   updateVistoria: (id: string, vistoria: Partial<Vistoria>) => Promise<void>;
   deleteVistoria: (id: string) => Promise<void>;
@@ -19,14 +19,10 @@ const VistoriaContext = createContext<VistoriaContextType | undefined>(undefined
 export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [vistorias, setVistorias] = useState<Vistoria[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchVistorias = async () => {
     try {
       setIsLoading(true);
-      setError(null);
-      console.log('Buscando vistorias...');
-      
       const { data, error } = await supabase
         .from('vistorias')
         .select('*')
@@ -34,7 +30,6 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       if (error) {
         console.error('Error fetching vistorias:', error);
-        setError('Erro ao carregar vistorias');
         toast({
           title: "Erro",
           description: "Erro ao carregar vistorias",
@@ -44,10 +39,8 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
 
       setVistorias(data || []);
-      console.log('Vistorias carregadas:', data?.length || 0);
     } catch (error) {
       console.error('Error:', error);
-      setError('Erro ao carregar vistorias');
       toast({
         title: "Erro",
         description: "Erro ao carregar vistorias",
@@ -187,6 +180,50 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const deleteVistoria = async (id: string) => {
     try {
+      // Primeiro, obter a vistoria para acessar as URLs das fotos
+      const vistoria = vistorias.find(v => v.id === id);
+      
+      if (vistoria) {
+        // Coletar todas as URLs de fotos para remover do storage
+        const allPhotoUrls: string[] = [];
+        const photoFields = [
+          'fotos_frente', 'fotos_lateral_esquerda', 'fotos_lateral_direita',
+          'fotos_chassi', 'fotos_traseira', 'fotos_motor'
+        ];
+
+        photoFields.forEach(field => {
+          const photos = vistoria[field as keyof typeof vistoria];
+          if (Array.isArray(photos)) {
+            allPhotoUrls.push(...photos);
+          }
+        });
+
+        // Remover fotos do storage antes de deletar o registro
+        if (allPhotoUrls.length > 0) {
+          const removePhotoPromises = allPhotoUrls.map(async (photoUrl) => {
+            try {
+              const url = new URL(photoUrl);
+              const pathParts = url.pathname.split('/');
+              const filePath = pathParts.slice(-3).join('/');
+
+              const { error } = await supabase.storage
+                .from('vistoria-fotos')
+                .remove([filePath]);
+
+              if (error) {
+                console.error('Error removing photo from storage:', error);
+              }
+            } catch (error) {
+              console.error('Error processing photo URL:', error);
+            }
+          });
+
+          // Executar todas as remoções em paralelo
+          await Promise.allSettled(removePhotoPromises);
+        }
+      }
+
+      // Agora deletar o registro da vistoria
       const { error } = await supabase
         .from('vistorias')
         .delete()
@@ -205,7 +242,7 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
       setVistorias(prev => prev.filter(v => v.id !== id));
       toast({
         title: "Sucesso",
-        description: "Vistoria excluída com sucesso!",
+        description: "Vistoria e imagens excluídas com sucesso!",
       });
     } catch (error) {
       console.error('Error:', error);
@@ -225,34 +262,18 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
     await fetchVistorias();
   };
 
-  // Buscar dados inicialmente
   useEffect(() => {
     fetchVistorias();
-  }, []);
-
-  // Escutar eventos de refresh automático
-  useEffect(() => {
-    const handleRefresh = () => {
-      console.log('Evento de refresh recebido - atualizando vistorias...');
-      fetchVistorias();
-    };
-
-    window.addEventListener('refresh-app-data', handleRefresh);
-    
-    return () => {
-      window.removeEventListener('refresh-app-data', handleRefresh);
-    };
   }, []);
 
   const value: VistoriaContextType = {
     vistorias,
     isLoading,
-    error,
     addVistoria,
     updateVistoria,
     deleteVistoria,
     getVistoriaById,
-    refreshVistorias: fetchVistorias,
+    refreshVistorias,
   };
 
   return (

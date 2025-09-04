@@ -1,3 +1,4 @@
+
 import { Vistoria } from '@/types/vistoria';
 import { NotificationRecipient } from '@/types/notification';
 import { supabase } from '@/integrations/supabase/client';
@@ -120,15 +121,9 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         
         .page {
           width: 210mm;
-          height: 297mm;
           margin: 0 auto;
           padding: 20mm;
           background: white;
-          page-break-after: always;
-        }
-        
-        .page:last-child {
-          page-break-after: auto;
         }
         
         .header {
@@ -279,120 +274,10 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           color: #666;
         }
         
-        /* Segunda página - Layout para dobra */
-        .envelope-page {
-          position: relative;
-          height: 297mm;
-          width: 210mm;
-          margin: 0 auto;
-          padding: 0;
-          background: white;
-        }
-        
-        .fold-guide {
-          position: absolute;
-          left: 0;
-          right: 0;
-          height: 1px;
-          border-top: 1px dashed #ccc;
-          top: 50%;
-          z-index: 1;
-        }
-        
-        .fold-guide::before {
-          content: "← DOBRAR AQUI →";
-          position: absolute;
-          left: 50%;
-          top: -10px;
-          transform: translateX(-50%);
-          background: white;
-          padding: 0 10px;
-          font-size: 8px;
-          color: #999;
-        }
-        
-        .sender-section {
-          position: absolute;
-          top: 10mm;
-          left: 10mm;
-          right: 10mm;
-          height: calc(50% - 15mm);
-          transform: rotate(180deg);
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
-          align-items: center;
-          padding-bottom: 5mm;
-        }
-        
-        .recipient-section {
-          position: absolute;
-          bottom: 10mm;
-          left: 10mm;
-          right: 10mm;
-          height: calc(50% - 15mm);
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-start;
-          align-items: center;
-          padding-top: 5mm;
-        }
-        
-        .address-box {
-          border: 2px solid #3b82f6;
-          border-radius: 8px;
-          padding: 20px;
-          background: white;
-          width: 100%;
-          max-width: 500px;
-          min-height: 140px;
-          position: relative;
-        }
-        
-        .address-header {
-          background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%);
-          color: white;
-          padding: 8px 15px;
-          margin: -20px -20px 15px -20px;
-          border-radius: 6px 6px 0 0;
-          font-weight: bold;
-          font-size: 12px;
-          text-align: center;
-          -webkit-print-color-adjust: exact !important;
-          color-adjust: exact !important;
-          print-color-adjust: exact !important;
-        }
-        
-        .address-content {
-          font-size: 11px;
-          line-height: 1.6;
-          color: #333;
-        }
-        
-        .address-lines {
-          border-bottom: 1px solid #ddd;
-          margin-bottom: 8px;
-          padding-bottom: 4px;
-          min-height: 20px;
-        }
-        
-        .institutional-info {
-          font-size: 10px;
-          color: #666;
-          text-align: center;
-          margin-top: 10px;
-          font-weight: 500;
-        }
-        
         @media print {
           .page {
             margin: 0;
             padding: 15mm;
-          }
-          
-          .envelope-page {
-            margin: 0;
-            padding: 0;
           }
           
           * {
@@ -410,13 +295,6 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           
           .vehicle-info h3 {
             background: #3b82f6 !important;
-            -webkit-print-color-adjust: exact !important;
-            color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          
-          .address-header {
-            background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%) !important;
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -492,60 +370,6 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           <div class="signature-line"></div>
           <div class="president-name">${presidenteName}</div>
           <div class="president-title">Presidente da Comissão de Leilão</div>
-        </div>
-      </div>
-
-      <!-- Segunda Página - Layout para Envelope -->
-      <div class="envelope-page">
-        <!-- Linha guia para dobra -->
-        <div class="fold-guide"></div>
-        
-        <!-- Seção do Remetente (parte superior, de cabeça para baixo) -->
-        <div class="sender-section">
-          <div class="address-box">
-            <div class="address-header">REMETENTE</div>
-            <div class="address-content">
-              <div class="address-lines">
-                <strong>PREFEITURA MUNICIPAL DE GUANAMBI</strong><br>
-                COMISSÃO DE LEILÃO
-              </div>
-              <div class="address-lines">
-                Praça Henrique Pereira Donato, 90<br>
-                Centro Administrativo
-              </div>
-              <div class="address-lines">
-                Guanambi - Bahia<br>
-                CEP 46.430-000
-              </div>
-              <div class="institutional-info">
-                ${smtranLogo 
-                  ? `<img src="${smtranLogo}" alt="SMTRAN" style="height: 20px; margin-right: 10px;" crossorigin="anonymous" />` 
-                  : 'SMTRAN'
-                } | PREFEITURA MUNICIPAL DE GUANAMBI
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Seção do Destinatário (parte inferior) -->
-        <div class="recipient-section">
-          <div class="address-box">
-            <div class="address-header">DESTINATÁRIO</div>
-            <div class="address-content">
-              <div class="address-lines">
-                <strong>${recipient.name}</strong>
-              </div>
-              <div class="address-lines">
-                ${recipient.address.split(',')[0] || '_'.repeat(40)}
-              </div>
-              <div class="address-lines">
-                ${recipient.address.split(',').slice(1).join(',').trim() || '_'.repeat(40)}
-              </div>
-              <div class="address-lines">
-                ${recipient.address.includes('CEP') ? recipient.address.split('CEP')[1]?.trim() || '_'.repeat(15) : '_'.repeat(15)}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </body>

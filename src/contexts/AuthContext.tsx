@@ -1,7 +1,7 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useVistorias } from './VistoriaContext';
 
 interface Profile {
   id: string;
@@ -22,8 +22,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: () => boolean;
-  isRefreshing: boolean;
-  refreshData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,7 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -74,27 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const refreshData = async () => {
-    setIsRefreshing(true);
-    try {
-      console.log('Iniciando atualização dos dados...');
-      
-      // Refetch do perfil do usuário
-      if (user) {
-        await fetchProfile(user.id);
-      }
-      
-      // Disparar evento customizado para que outros contextos atualizem seus dados
-      window.dispatchEvent(new CustomEvent('refresh-app-data'));
-      
-      console.log('Dados atualizados com sucesso!');
-    } catch (error) {
-      console.error('Erro ao atualizar dados:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -109,11 +85,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             fetchProfile(session.user.id);
           }, 0);
 
-          // Atualização automática após login
+          // Log login activity
           if (event === 'SIGNED_IN') {
-            setTimeout(async () => {
-              await logActivity('login', 'Usuário fez login no sistema');
-              await refreshData(); // Atualiza todos os dados automaticamente
+            setTimeout(() => {
+              logActivity('login', 'Usuário fez login no sistema');
             }, 100);
           }
         } else {
@@ -222,10 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     logout,
     isAdmin,
-    refreshData,
-    isRefreshing,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
