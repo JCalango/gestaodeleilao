@@ -180,6 +180,50 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const deleteVistoria = async (id: string) => {
     try {
+      // Primeiro, obter a vistoria para acessar as URLs das fotos
+      const vistoria = vistorias.find(v => v.id === id);
+      
+      if (vistoria) {
+        // Coletar todas as URLs de fotos para remover do storage
+        const allPhotoUrls: string[] = [];
+        const photoFields = [
+          'fotos_frente', 'fotos_lateral_esquerda', 'fotos_lateral_direita',
+          'fotos_chassi', 'fotos_traseira', 'fotos_motor'
+        ];
+
+        photoFields.forEach(field => {
+          const photos = vistoria[field as keyof typeof vistoria];
+          if (Array.isArray(photos)) {
+            allPhotoUrls.push(...photos);
+          }
+        });
+
+        // Remover fotos do storage antes de deletar o registro
+        if (allPhotoUrls.length > 0) {
+          const removePhotoPromises = allPhotoUrls.map(async (photoUrl) => {
+            try {
+              const url = new URL(photoUrl);
+              const pathParts = url.pathname.split('/');
+              const filePath = pathParts.slice(-3).join('/');
+
+              const { error } = await supabase.storage
+                .from('vistoria-fotos')
+                .remove([filePath]);
+
+              if (error) {
+                console.error('Error removing photo from storage:', error);
+              }
+            } catch (error) {
+              console.error('Error processing photo URL:', error);
+            }
+          });
+
+          // Executar todas as remoções em paralelo
+          await Promise.allSettled(removePhotoPromises);
+        }
+      }
+
+      // Agora deletar o registro da vistoria
       const { error } = await supabase
         .from('vistorias')
         .delete()
@@ -198,7 +242,7 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
       setVistorias(prev => prev.filter(v => v.id !== id));
       toast({
         title: "Sucesso",
-        description: "Vistoria excluída com sucesso!",
+        description: "Vistoria e imagens excluídas com sucesso!",
       });
     } catch (error) {
       console.error('Error:', error);
