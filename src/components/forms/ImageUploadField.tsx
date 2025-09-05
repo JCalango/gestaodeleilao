@@ -7,16 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { UploadProgress } from '@/components/ui/loading-states';
-import { useImageManagement, ImageUploadOptions } from '@/hooks/useImageManagement';
+import { ImageManagementHook } from '@/hooks/useImageManagement';
 
 interface ImageUploadFieldProps {
   label: string;
   description?: string;
   section: string;
-  images: string[];
+  imageManager: ImageManagementHook;
   maxImages?: number;
-  options?: Partial<ImageUploadOptions>;
-  onImagesChange: (images: Record<string, string[]>) => void;
   className?: string;
   disabled?: boolean;
 }
@@ -25,33 +23,27 @@ export function ImageUploadField({
   label,
   description,
   section,
-  images = [],
+  imageManager,
   maxImages = 10,
-  options = {},
-  onImagesChange,
   className,
   disabled = false
 }: ImageUploadFieldProps) {
-  const imageManagement = useImageManagement(
-    { bucketName: 'vistoria-fotos', ...options },
-    onImagesChange
-  );
-
-  const { state, operations, utils } = imageManagement;
-  const { uploading, progress, errors } = state;
+  const { state, operations, utils } = imageManager;
+  const { uploading, progress, errors, images } = state;
   const { uploadImages, removeImage, clearSection } = operations;
   const { clearErrors } = utils;
 
   const isUploading = uploading[section] || false;
   const uploadProgress = progress[section] || 0;
   const error = errors[section];
-  const canUploadMore = images.length < maxImages;
+  const sectionImages = images[section] || [];
+  const canUploadMore = sectionImages.length < maxImages;
 
   // Manipular seleção de arquivos
   const handleFileSelect = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0 || disabled) return;
 
-    const remainingSlots = maxImages - images.length;
+    const remainingSlots = maxImages - sectionImages.length;
     const filesToUpload = Array.from(files).slice(0, remainingSlots);
 
     if (filesToUpload.length < files.length) {
@@ -61,7 +53,7 @@ export function ImageUploadField({
 
     clearErrors(section);
     await uploadImages(filesToUpload, section);
-  }, [uploadImages, section, maxImages, images.length, disabled, clearErrors]);
+  }, [uploadImages, section, maxImages, sectionImages.length, disabled, clearErrors]);
 
   // Abrir seletor de arquivos
   const openFileSelector = useCallback(() => {
@@ -104,7 +96,7 @@ export function ImageUploadField({
             )}
           </div>
           <Badge variant="outline" className="text-xs">
-            {images.length}/{maxImages}
+            {sectionImages.length}/{maxImages}
           </Badge>
         </div>
       </CardHeader>
@@ -135,7 +127,7 @@ export function ImageUploadField({
 
           {canUploadMore && (
             <p className="text-xs text-muted-foreground">
-              Você pode adicionar mais {maxImages - images.length} imagem(ns).
+              Você pode adicionar mais {maxImages - sectionImages.length} imagem(ns).
             </p>
           )}
         </div>
@@ -157,7 +149,7 @@ export function ImageUploadField({
 
         {/* Grid de imagens */}
         <div className="space-y-3">
-          {images.length === 0 ? (
+          {sectionImages.length === 0 ? (
             <div className="flex items-center justify-center h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg">
               <div className="text-center">
                 <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
@@ -169,7 +161,7 @@ export function ImageUploadField({
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {images.map((imageUrl, index) => (
+                {sectionImages.map((imageUrl, index) => (
                   <div key={`${imageUrl}-${index}`} className="relative group">
                     <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
                       <img
@@ -213,7 +205,7 @@ export function ImageUploadField({
               </div>
 
               {/* Botão para limpar todas */}
-              {images.length > 1 && !disabled && (
+              {sectionImages.length > 1 && !disabled && (
                 <div className="flex justify-center pt-2">
                   <Button
                     type="button"
@@ -223,7 +215,7 @@ export function ImageUploadField({
                     className="text-destructive hover:text-destructive"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Remover Todas ({images.length})
+                    Remover Todas ({sectionImages.length})
                   </Button>
                 </div>
               )}

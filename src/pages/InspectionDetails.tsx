@@ -40,8 +40,15 @@ const InspectionDetails: React.FC = () => {
   };
 
   const handleEdit = () => {
-    if (id) {
-      navigate(`/inspections/edit/${id}`);
+    console.log('Edit button clicked, id:', id);
+    if (id && typeof id === 'string' && id.length > 0) {
+      navigate(`/edit-vistoria/${id}`);
+    } else {
+      toast({
+        title: 'Erro',
+        description: 'ID da vistoria não encontrado para edição.',
+        variant: 'destructive',
+      });
     }
   };
 

@@ -1,4 +1,3 @@
-
 import { Vistoria } from '@/types/vistoria';
 import { NotificationRecipient } from '@/types/notification';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,11 +38,13 @@ const getSystemSettings = async () => {
 };
 
 const getDefaultNotificationText = () => {
-  return `Informamos a V. Sa. que o veículo descrito abaixo encontra-se apreendido e recolhido no depósito desta Superintendência de Trânsito de Guanambi (SMTRAN-GBI), nos termos do Art. 328 do Código de Trânsito Brasileiro (CTB), alterado pela Lei nº. 13.160/2015, e da Resolução nº. 623/2016 do Conselho Nacional de Trânsito (CONTRAN).
+  return `A COMISSÃO DE LEILÃO, vinculada à Secretaria de Planejamento da Prefeitura Municipal de Guanambi-Ba, no uso de suas atribuições legais, NOTIFICA Vossa Senhoria, na qualidade de proprietário(a), fiduciário(a) ou responsável legal, que o veículo automotor descrito abaixo encontra-se apreendido e recolhido no depósito desta Superintendência, nos termos do Art. 328 do Código de Trânsito Brasileiro (CTB), alterado pela Lei nº 13.160/2015, e da Resolução nº 623/2016 do Conselho Nacional de Trânsito (CONTRAN).
 
-Para evitar a execução do mesmo, solicitamos seu comparecimento a fim de restituir-lhe o referido veículo, após quitação dos débitos existentes e outras eventuais despesas, e promova sua retirada do depósito, sob pena de o não cumprimento desta Notificação no prazo de 30 (trinta) dias, ser levado à hasta pública.
+Dessa forma, orientamos que seja providenciada a regularização do licenciamento do veículo, bem como a quitação dos débitos referentes a remoção, estadia e demais encargos, a fim de possibilitar a restituição do bem.
 
-Para que seja feita a retirada do veículo, V. Sa. deverá comparecer, de segunda a sexta, no horário de atendimento ao público, no Setor de Liberação de Veículo, situado na av. Joaquim Chaves, nº 401, B. Santo Antônio, Guanambi – Bahia, ou entre em contato pelo número 077 988029862.`;
+Após a devida regularização, V. Sa. deverá comparecer, em até 30 (trinta) dias contados desta notificação, ao Setor de Liberação de Veículos, situado na Av. Joaquim Chaves, nº 401, Bairro Santo Antônio, Guanambi/BA, de segunda a sexta-feira, em horário comercial, ou entrar em contato pelo telefone (77) 98802-9862, para tratar da retirada do veículo.
+
+Ressaltamos que o não cumprimento deste prazo implicará na inclusão do referido veículo em processo de alienação por meio de leilão público, conforme a legislação vigente.`;
 };
 
 const getRecipientData = (vistoria: Vistoria, recipientType: NotificationRecipient) => {
@@ -69,6 +70,71 @@ const getRecipientData = (vistoria: Vistoria, recipientType: NotificationRecipie
         address: 'N/A'
       };
   }
+};
+
+const generateNotificationBackPage = (
+  recipient: { name: string; address: string },
+  prefeituraLogo: string | null,
+  smtranLogo: string | null
+) => {
+  return `
+    <div class="page back-page">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-content">
+          <div class="header-left">
+            <div class="logo-container">
+              ${
+                prefeituraLogo
+                  ? `<img src="${prefeituraLogo}" alt="Prefeitura" class="logo-image" crossorigin="anonymous" />`
+                  : '<div class="logo-text">PREFEITURA<br>GUANAMBI</div>'
+              }
+            </div>
+            <div class="header-text">
+              <div class="municipal-title">PREFEITURA MUNICIPAL DE GUANAMBI</div>
+              <div class="subtitle">COMISSÃO DE LEILÃO</div>
+            </div>
+          </div>
+          <div class="header-right">
+            <div class="logo-container">
+              ${
+                smtranLogo
+                  ? `<img src="${smtranLogo}" alt="SMTRAN" class="logo-image" crossorigin="anonymous" />`
+                  : '<div class="logo-text">SMTRAN</div>'
+              }
+            </div>
+            <div class="document-title">NOTIFICAÇÃO</div>
+            <div style="margin-bottom:10px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Remetente -->
+      <div class="remetente" style="margin-top:40px; font-size:16px;">
+        <strong>REMETENTE:</strong><br>
+        Prefeitura Municipal de Guanambi - BA<br>
+        Secretaria de Planejamento - COMISSÃO DE LEILÃO<br>
+        Praça Henrique Pereira Donato, 90 - Centro<br>
+        CEP: 46430-000 - Guanambi/BA
+      </div>
+      
+      <!-- Destinatário -->
+      <div class="destinatario" style="
+        background: #f8fafc;
+        border: 2px solid #3b82f6;
+        border-radius: 8px;
+        padding: 20px;
+        font-size: 16px;
+        margin-bottom: 30px;
+      ">
+        <strong style="background: #3b82f6; color: white; padding: 10px 15px; margin: -20px -20px 15px -20px; font-size: 14px; border-radius: 6px 6px 0 0; display: block;">
+          DESTINATÁRIO:
+        </strong>
+        ${recipient.name}<br>
+        ${recipient.address}
+      </div>
+    </div>
+  `;
 };
 
 export const generateNotificationPDF = async (vistoria: Vistoria, recipientType: NotificationRecipient) => {
@@ -124,6 +190,11 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           margin: 0 auto;
           padding: 20mm;
           background: white;
+          page-break-after: always;
+        }
+        
+        .page:last-child {
+          page-break-after: auto;
         }
         
         .header {
@@ -274,6 +345,50 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           color: #666;
         }
         
+        /* Estilos específicos para a página de verso */
+        .back-page {
+          width: 210mm;
+          height: 297mm;
+          padding: 20mm;
+          position: relative;
+          font-size: 12px;
+          background: white;
+        }
+        
+        .back-page .header {
+          margin-bottom: 40px;
+        }
+        
+        .back-page .logo-container {
+          width: 70px;
+          height: 70px;
+        }
+        
+        .back-page .municipal-title {
+          font-size: 14px;
+        }
+        
+        .remetente {
+          position: absolute;
+          top: 50mm;
+          left: 20mm;
+          font-size: 10px;
+          line-height: 1.4;
+        }
+        
+        .destinatario {
+          position: absolute;
+          top: 160mm;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 160mm;
+          min-height: 40mm;
+          font-size: 12px;
+          border: 1px solid #000;
+          padding: 5mm;
+          line-height: 1.5;
+        }
+        
         @media print {
           .page {
             margin: 0;
@@ -299,10 +414,15 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
             color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+          
+          .back-page {
+            padding: 15mm;
+          }
         }
       </style>
     </head>
     <body>
+      <!-- Primeira página - Notificação -->
       <div class="page">
         <!-- Header -->
         <div class="header">
@@ -327,6 +447,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
                 }
               </div>
               <div class="document-title">NOTIFICAÇÃO</div>
+              <div style="margin-bottom:40px;"></div>
             </div>
           </div>
         </div>
@@ -362,7 +483,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
 
         <!-- Final Note -->
         <div class="content">
-          <p>Caso o veículo citado não seja mais de sua propriedade ou já tenha sido feita sua retirada, favor desconsiderar esta Notificação.</p>
+          <p>Caso o veículo mencionado já não pertença a V. Sa. ou tenha sido previamente retirado, solicitamos que desconsidere esta notificação.</p>
         </div>
 
         <!-- Signature -->
@@ -372,6 +493,9 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           <div class="president-title">Presidente da Comissão de Leilão</div>
         </div>
       </div>
+
+      <!-- Segunda página - Verso para envelope -->
+      ${generateNotificationBackPage(recipient, prefeituraLogo, smtranLogo)}
     </body>
     </html>
   `;

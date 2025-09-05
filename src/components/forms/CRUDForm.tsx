@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useForm, FormProvider, FieldValues, Path, UseFormReturn } from 'react-hook-form';
+import { useForm, FormProvider, FieldValues, Path, UseFormReturn, DefaultValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -56,7 +56,7 @@ export function CRUDForm<T extends FieldValues>({
 
   const form = useForm<T>({
     resolver: zodResolver(schema),
-    defaultValues: defaultValues,
+    defaultValues: defaultValues as DefaultValues<T>,
   });
 
   const handleSubmit = async (data: T) => {
