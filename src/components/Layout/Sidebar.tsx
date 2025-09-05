@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Sheet,
@@ -20,6 +19,7 @@ import {
   Users,
   LogOut,
   Bell,
+  Database,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -45,6 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { icon: FileText, label: "Vistorias", path: "/inspections" },
     { icon: Bell, label: "Notificações", path: "/notifications" },
     { icon: FileText, label: "Config. Notificações", path: "/notification-settings" },
+    { icon: Database, label: "Dados do Usuário", path: "/user-data-example" },
     { icon: Settings, label: "Configurações", path: "/settings" },
     { icon: Users, label: "Usuários", path: "/users" },
   ];
