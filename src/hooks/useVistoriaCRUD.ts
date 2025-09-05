@@ -66,15 +66,17 @@ export function useVistoriaCRUD() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      // Garantir que numero_controle está presente
       const insertData = {
         ...data,
         created_by: user.id,
         updated_by: user.id,
+        numero_controle: data.numero_controle || `CTRL-${Date.now()}`
       };
 
       const { data: newVistoria, error } = await supabase
         .from('vistorias')
-        .insert([insertData])
+        .insert(insertData)
         .select()
         .single();
 

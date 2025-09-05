@@ -1,512 +1,356 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { z } from 'zod';
-import { useSupabaseCRUD } from '@/hooks/useSupabaseCRUD';
-import { useImageManagement } from '@/hooks/useImageManagement';
 import { CRUDForm } from '@/components/forms/CRUDForm';
+import { useVistoriaCRUD, VistoriaData } from '@/hooks/useVistoriaCRUD';
+import { useImageManagement } from '@/hooks/useImageManagement';
 import { ImageUploadField } from '@/components/forms/ImageUploadField';
-import { PageLoading, ErrorState, EmptyState, CardSkeleton } from '@/components/ui/loading-states';
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Plus, Car } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 
-// Schema de validação para vistoria
+// Schema de validação
 const vistoriaSchema = z.object({
   numero_controle: z.string().min(1, 'Número de controle é obrigatório'),
-  placa: z.string().min(7, 'Placa deve ter pelo menos 7 caracteres'),
-  marca: z.string().min(1, 'Marca é obrigatória'),
-  modelo: z.string().min(1, 'Modelo é obrigatório'),
-  ano_fabricacao: z.number().min(1900).max(new Date().getFullYear()),
-  ano_modelo: z.number().min(1900).max(new Date().getFullYear() + 1),
-  cor: z.string().min(1, 'Cor é obrigatória'),
-  municipio: z.string().min(1, 'Município é obrigatório'),
-  uf: z.string().length(2, 'UF deve ter 2 caracteres'),
+  placa: z.string().optional(),
+  marca: z.string().optional(),
+  modelo: z.string().optional(),
+  ano_fabricacao: z.number().optional(),
+  ano_modelo: z.number().optional(),
+  cor: z.string().optional(),
   observacoes: z.string().optional(),
-  // Campos de fotos serão gerenciados separadamente
-  fotos_frente: z.array(z.string()).optional(),
-  fotos_lateral_esquerda: z.array(z.string()).optional(),
-  fotos_lateral_direita: z.array(z.string()).optional(),
-  fotos_traseira: z.array(z.string()).optional(),
-  fotos_chassi: z.array(z.string()).optional(),
-  fotos_motor: z.array(z.string()).optional(),
 });
 
 type VistoriaFormData = z.infer<typeof vistoriaSchema>;
 
-interface Vistoria extends VistoriaFormData {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-  updated_by: string;
-}
-
-// Componente principal do exemplo CRUD
 export function VistoriaCRUDExample() {
-  const [selectedVistoria, setSelectedVistoria] = useState<Vistoria | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [showForm, setShowForm] = React.useState(false);
 
   // Hook CRUD para vistorias
-  const {
-    state: { data: vistorias, loading, error, actionLoading },
-    operations: { create, update, delete: deleteVistoria },
-    utils: { refresh }
-  } = useSupabaseCRUD<'vistorias', Vistoria>({
-    tableName: 'vistorias',
-    orderBy: { column: 'created_at', ascending: false },
-    realtime: true // Habilita atualizações em tempo real
-  });
+  const vistoriaCRUD = useVistoriaCRUD();
 
-  // Estados de imagem para o formulário
-  const [formImages, setFormImages] = useState<Record<string, string[]>>({});
+  // Hook para gerenciar imagens
+  const imageManager = useImageManagement(
+    { bucketName: 'vistoria-fotos' },
+    (images) => {
+      console.log('Images updated:', images);
+    }
+  );
 
-  // Manipuladores de ações
-  const handleCreateVistoria = async (data: VistoriaFormData) => {
-    const vistoriaWithPhotos = {
-      ...data,
-      ...formImages
-    };
-    
-    const newVistoria = await create(vistoriaWithPhotos);
-    if (newVistoria) {
-      setIsFormOpen(false);
-      setSelectedVistoria(null);
-      setFormImages({});
+  const handleSubmit = async (data: VistoriaFormData) => {
+    try {
+      // Criar dados com as imagens
+      const vistoriaData: Partial<VistoriaData> = {
+        ...data,
+        fotos_frente: imageManager.state.images.frente || [],
+        fotos_lateral_esquerda: imageManager.state.images.lateral_esquerda || [],
+        fotos_lateral_direita: imageManager.state.images.lateral_direita || [],
+        fotos_traseira: imageManager.state.images.traseira || [],
+        fotos_chassi: imageManager.state.images.chassi || [],
+        fotos_motor: imageManager.state.images.motor || [],
+      };
+
+      if (editingId) {
+        await vistoriaCRUD.updateVistoria(editingId, vistoriaData);
+        setEditingId(null);
+      } else {
+        await vistoriaCRUD.createVistoria(vistoriaData);
+      }
+
+      // Limpar formulário
+      setShowForm(false);
+      imageManager.operations.setImages({});
+    } catch (error) {
+      console.error('Error submitting vistoria:', error);
     }
   };
 
-  const handleUpdateVistoria = async (data: VistoriaFormData) => {
-    if (!selectedVistoria) return;
+  const handleEdit = (vistoria: VistoriaData) => {
+    setEditingId(vistoria.id!);
+    setShowForm(true);
     
-    const vistoriaWithPhotos = {
-      ...data,
-      ...formImages
+    // Carregar imagens existentes
+    const existingImages = {
+      frente: vistoria.fotos_frente || [],
+      lateral_esquerda: vistoria.fotos_lateral_esquerda || [],
+      lateral_direita: vistoria.fotos_lateral_direita || [],
+      traseira: vistoria.fotos_traseira || [],
+      chassi: vistoria.fotos_chassi || [],
+      motor: vistoria.fotos_motor || [],
     };
-    
-    const updatedVistoria = await update(selectedVistoria.id, vistoriaWithPhotos);
-    if (updatedVistoria) {
-      setIsFormOpen(false);
-      setSelectedVistoria(null);
-      setFormImages({});
-    }
+    imageManager.operations.setImages(existingImages);
   };
 
-  const handleDeleteVistoria = async (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta vistoria?')) {
-      await deleteVistoria(id);
+      await vistoriaCRUD.deleteVistoria(id);
     }
   };
 
-  const handleEditVistoria = (vistoria: Vistoria) => {
-    setSelectedVistoria(vistoria);
-    setFormImages({
-      fotos_frente: vistoria.fotos_frente || [],
-      fotos_lateral_esquerda: vistoria.fotos_lateral_esquerda || [],
-      fotos_lateral_direita: vistoria.fotos_lateral_direita || [],
-      fotos_traseira: vistoria.fotos_traseira || [],
-      fotos_chassi: vistoria.fotos_chassi || [],
-      fotos_motor: vistoria.fotos_motor || [],
-    });
-    setIsFormOpen(true);
+  const editingVistoria = editingId ? vistoriaCRUD.vistorias.find(v => v.id === editingId) : null;
+  const defaultValues = editingVistoria ? {
+    numero_controle: editingVistoria.numero_controle,
+    placa: editingVistoria.placa || '',
+    marca: editingVistoria.marca || '',
+    modelo: editingVistoria.modelo || '',
+    ano_fabricacao: editingVistoria.ano_fabricacao || undefined,
+    ano_modelo: editingVistoria.ano_modelo || undefined,
+    cor: editingVistoria.cor || '',
+    observacoes: editingVistoria.observacoes || '',
+  } : {
+    numero_controle: '',
+    placa: '',
+    marca: '',
+    modelo: '',
+    observacoes: '',
   };
-
-  const handleNewVistoria = () => {
-    setSelectedVistoria(null);
-    setFormImages({});
-    setIsFormOpen(true);
-  };
-
-  const handleCancelForm = () => {
-    setIsFormOpen(false);
-    setSelectedVistoria(null);
-    setFormImages({});
-  };
-
-  // Renderização do loading inicial
-  if (loading && vistorias.length === 0) {
-    return <PageLoading title="Carregando vistorias..." description="Aguarde enquanto carregamos os dados" />;
-  }
 
   return (
-    <div className="space-y-6">
-      {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Gerenciar Vistorias</h1>
-          <p className="text-muted-foreground">Sistema completo de CRUD com gestão de imagens</p>
-        </div>
-        <Button onClick={handleNewVistoria}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Vistoria
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Gerenciar Vistorias</h1>
+        <Button onClick={() => setShowForm(!showForm)}>
+          {showForm ? 'Cancelar' : 'Nova Vistoria'}
         </Button>
       </div>
 
-      {/* Estado de erro global */}
-      {error && (
-        <ErrorState
-          message={error.message}
-          onRetry={refresh}
-        />
-      )}
+      {showForm && (
+        <CRUDForm
+          title={editingId ? 'Editar Vistoria' : 'Nova Vistoria'}
+          schema={vistoriaSchema}
+          defaultValues={defaultValues}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingId(null);
+            imageManager.operations.setImages({});
+          }}
+          isLoading={vistoriaCRUD.actionLoading}
+          error={vistoriaCRUD.error}
+        >
+          {(form) => (
+            <div className="space-y-6">
+              {/* Informações Básicas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="numero_controle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número de Controle *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: CTRL-2024-001" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-      {/* Formulário */}
-      {isFormOpen && (
-        <VistoriaForm
-          vistoria={selectedVistoria}
-          images={formImages}
-          onImagesChange={setFormImages}
-          onSubmit={selectedVistoria ? handleUpdateVistoria : handleCreateVistoria}
-          onCancel={handleCancelForm}
-          isLoading={actionLoading}
-        />
-      )}
+                <FormField
+                  control={form.control}
+                  name="placa"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Placa</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: ABC-1234" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-      {/* Lista de vistorias */}
-      <VistoriaList
-        vistorias={vistorias}
-        loading={loading}
-        onEdit={handleEditVistoria}
-        onDelete={handleDeleteVistoria}
-      />
-    </div>
-  );
-}
+                <FormField
+                  control={form.control}
+                  name="marca"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Marca</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: Toyota" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-// Componente do formulário de vistoria
-interface VistoriaFormProps {
-  vistoria?: Vistoria | null;
-  images: Record<string, string[]>;
-  onImagesChange: (images: Record<string, string[]>) => void;
-  onSubmit: (data: VistoriaFormData) => Promise<void>;
-  onCancel: () => void;
-  isLoading?: boolean;
-}
+                <FormField
+                  control={form.control}
+                  name="modelo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Modelo</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: Corolla" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-function VistoriaForm({
-  vistoria,
-  images,
-  onImagesChange,
-  onSubmit,
-  onCancel,
-  isLoading = false
-}: VistoriaFormProps) {
-  const isEditing = !!vistoria;
-  
-  const defaultValues: Partial<VistoriaFormData> = vistoria ? {
-    numero_controle: vistoria.numero_controle,
-    placa: vistoria.placa,
-    marca: vistoria.marca,
-    modelo: vistoria.modelo,
-    ano_fabricacao: vistoria.ano_fabricacao,
-    ano_modelo: vistoria.ano_modelo,
-    cor: vistoria.cor,
-    municipio: vistoria.municipio,
-    uf: vistoria.uf,
-    observacoes: vistoria.observacoes,
-  } : {
-    ano_fabricacao: new Date().getFullYear(),
-    ano_modelo: new Date().getFullYear(),
-  };
+                <FormField
+                  control={form.control}
+                  name="ano_fabricacao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ano de Fabricação</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number"
+                          placeholder="Ex: 2020"
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-  const photoSections = [
-    { key: 'fotos_frente', label: 'Frente' },
-    { key: 'fotos_lateral_esquerda', label: 'Lateral Esquerda' },
-    { key: 'fotos_lateral_direita', label: 'Lateral Direita' },
-    { key: 'fotos_traseira', label: 'Traseira' },
-    { key: 'fotos_chassi', label: 'Chassi' },
-    { key: 'fotos_motor', label: 'Motor' },
-  ];
+                <FormField
+                  control={form.control}
+                  name="cor"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cor</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ex: Branco" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-  return (
-    <CRUDForm
-      title={isEditing ? 'Editar Vistoria' : 'Nova Vistoria'}
-      description={isEditing ? `Editando vistoria: ${vistoria.numero_controle}` : 'Preencha os dados da nova vistoria'}
-      schema={vistoriaSchema}
-      defaultValues={defaultValues}
-      onSubmit={onSubmit}
-      onCancel={onCancel}
-      isLoading={isLoading}
-      submitLabel={isEditing ? 'Salvar Alterações' : 'Criar Vistoria'}
-      cancelLabel="Cancelar"
-    >
-      {(form) => (
-        <div className="space-y-6">
-          {/* Dados básicos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Dados Básicos</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="numero_controle"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número de Controle *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: 2024001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Upload de Imagens */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Fotos do Veículo</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <ImageUploadField
+                    label="Frente"
+                    section="frente"
+                    imageManager={imageManager}
+                  />
+                  <ImageUploadField
+                    label="Lateral Esquerda"
+                    section="lateral_esquerda"
+                    imageManager={imageManager}
+                  />
+                  <ImageUploadField
+                    label="Lateral Direita"
+                    section="lateral_direita"
+                    imageManager={imageManager}
+                  />
+                  <ImageUploadField
+                    label="Traseira"
+                    section="traseira"
+                    imageManager={imageManager}
+                  />
+                  <ImageUploadField
+                    label="Chassi"
+                    section="chassi"
+                    imageManager={imageManager}
+                  />
+                  <ImageUploadField
+                    label="Motor"
+                    section="motor"
+                    imageManager={imageManager}
+                  />
+                </div>
+              </div>
 
-              <FormField
-                control={form.control}
-                name="placa"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Placa *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: ABC1D23" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="marca"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Marca *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Toyota" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="modelo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Modelo *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Corolla" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="ano_fabricacao"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ano de Fabricação *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Ex: 2023"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="ano_modelo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ano do Modelo *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Ex: 2024"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="cor"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cor *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Branco" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="municipio"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Município *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: São Paulo" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="uf"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>UF *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: SP" maxLength={2} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Observações */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Observações</CardTitle>
-            </CardHeader>
-            <CardContent>
+              {/* Observações */}
               <FormField
                 control={form.control}
                 name="observacoes"
                 render={({ field }) => (
                   <FormItem>
+                    <FormLabel>Observações</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Observações adicionais sobre o veículo..."
-                        className="min-h-[100px]"
-                        {...field}
+                      <Textarea 
+                        {...field} 
+                        placeholder="Observações adicionais..."
+                        rows={4}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
-
-          {/* Upload de fotos */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Fotos do Veículo</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {photoSections.map((section) => (
-                <ImageUploadField
-                  key={section.key}
-                  label={section.label}
-                  section={section.key}
-                  images={images[section.key] || []}
-                  maxImages={5}
-                  onImagesChange={onImagesChange}
-                />
-              ))}
             </div>
-          </div>
-        </div>
+          )}
+        </CRUDForm>
       )}
-    </CRUDForm>
-  );
-}
 
-// Componente da lista de vistorias
-interface VistoriaListProps {
-  vistorias: Vistoria[];
-  loading: boolean;
-  onEdit: (vistoria: Vistoria) => void;
-  onDelete: (id: string) => void;
-}
+      {/* Lista de Vistorias */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-semibold">Vistorias Cadastradas</h2>
+        
+        {vistoriaCRUD.loading ? (
+          <div className="text-center py-8">Carregando vistorias...</div>
+        ) : vistoriaCRUD.error ? (
+          <div className="text-center py-8 text-destructive">
+            Erro ao carregar vistorias: {vistoriaCRUD.error}
+          </div>
+        ) : vistoriaCRUD.vistorias.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhuma vistoria cadastrada
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {vistoriaCRUD.vistorias.map((vistoria) => (
+              <Card key={vistoria.id}>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg">
+                    {vistoria.numero_controle}
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(vistoria)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(vistoria.id!)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <strong>Placa:</strong> {vistoria.placa || 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Marca:</strong> {vistoria.marca || 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Modelo:</strong> {vistoria.modelo || 'N/A'}
+                    </div>
+                  </div>
 
-function VistoriaList({ vistorias, loading, onEdit, onDelete }: VistoriaListProps) {
-  if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <CardSkeleton key={i} />
-        ))}
+                  {vistoria.observacoes && (
+                    <div className="mt-4">
+                      <strong>Observações:</strong>
+                      <p className="text-muted-foreground mt-1">{vistoria.observacoes}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
-    );
-  }
-
-  if (vistorias.length === 0) {
-    return (
-      <EmptyState
-        title="Nenhuma vistoria encontrada"
-        description="Comece criando sua primeira vistoria"
-        icon={<Car className="w-12 h-12" />}
-        action={{
-          label: "Criar primeira vistoria",
-          onClick: () => window.location.reload()
-        }}
-      />
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {vistorias.map((vistoria) => (
-        <Card key={vistoria.id} className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">{vistoria.numero_controle}</CardTitle>
-              <Badge variant="outline">{vistoria.placa}</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="text-sm">
-              <p><span className="font-medium">Marca:</span> {vistoria.marca}</p>
-              <p><span className="font-medium">Modelo:</span> {vistoria.modelo}</p>
-              <p><span className="font-medium">Ano:</span> {vistoria.ano_fabricacao}/{vistoria.ano_modelo}</p>
-              <p><span className="font-medium">Cor:</span> {vistoria.cor}</p>
-            </div>
-            
-            <div className="flex items-center justify-between pt-2">
-              <p className="text-xs text-muted-foreground">
-                {new Date(vistoria.created_at).toLocaleDateString()}
-              </p>
-              <div className="flex gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEdit(vistoria)}
-                >
-                  <Edit className="w-3 h-3" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onDelete(vistoria.id)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
     </div>
   );
 }
