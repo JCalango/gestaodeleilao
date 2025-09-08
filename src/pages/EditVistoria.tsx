@@ -83,7 +83,7 @@ const EditVistoria: React.FC = () => {
         ipva: vistoria.ipva || '',
         licenciamento: vistoria.licenciamento || '',
         infracoes_transito: vistoria.infracoes_transito || '',
-        data_entrada_patio: vistoria.data_entrada_patio || '',
+        data_entrada_patio: vistoria.data_entrada_patio || null,
         debito_patio: vistoria.debito_patio || undefined,
         dados_remocao: vistoria.dados_remocao || '',
         possui_comunicacao_venda: vistoria.possui_comunicacao_venda || false,

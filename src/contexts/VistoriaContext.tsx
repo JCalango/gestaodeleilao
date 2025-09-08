@@ -139,7 +139,10 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
         fotos_lateral_direita: vistoriaData.fotos_lateral_direita || [],
         fotos_chassi: vistoriaData.fotos_chassi || [],
         fotos_traseira: vistoriaData.fotos_traseira || [],
-        fotos_motor: vistoriaData.fotos_motor || []
+        fotos_motor: vistoriaData.fotos_motor || [],
+        // Garantir que campos de data vazios sejam null
+        data_entrada_patio: vistoriaData.data_entrada_patio || null,
+        data_inspecao: vistoriaData.data_inspecao || null
       };
 
       console.log('Updating vistoria data:', dataToUpdate);
