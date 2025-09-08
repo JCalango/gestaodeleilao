@@ -44,7 +44,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ control }) => {
                   type="datetime-local" 
                   {...field}
                   value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''}
-                  onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                  onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value).toISOString() : null)}
                 />
               </FormControl>
               <FormMessage />

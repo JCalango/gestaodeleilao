@@ -57,7 +57,7 @@ const DebtInfoSection: React.FC<DebtInfoSectionProps> = ({ control }) => {
                   type="date" 
                   {...field}
                   value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                  onChange={(e) => field.onChange(e.target.value)}
+                  onChange={(e) => field.onChange(e.target.value || null)}
                 />
               </FormControl>
               <FormMessage />
