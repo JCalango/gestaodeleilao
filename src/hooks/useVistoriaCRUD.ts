@@ -108,8 +108,11 @@ export function useVistoriaCRUD() {
       setActionLoading(true);
       setError(null);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('Você precisa estar logado para editar vistorias. Por favor, faça login novamente.');
+      }
 
       const updateData = {
         ...data,
@@ -132,15 +135,28 @@ export function useVistoriaCRUD() {
         description: "Vistoria atualizada com sucesso!",
       });
 
+      // Navegar para a lista após sucesso
+      setTimeout(() => {
+        window.location.href = '/inspections';
+      }, 1000);
+
       return updatedVistoria;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar vistoria';
       setError(errorMessage);
       toast({
-        title: "Erro",
+        title: "Erro de Autenticação",
         description: errorMessage,
         variant: "destructive",
       });
+      
+      // Se for erro de autenticação, redirecionar para login após um delay
+      if (errorMessage.includes('logado')) {
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 2000);
+      }
+      
       return null;
     } finally {
       setActionLoading(false);

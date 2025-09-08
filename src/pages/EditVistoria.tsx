@@ -165,13 +165,7 @@ const EditVistoria: React.FC = () => {
       });
 
       await updateVistoria(id, formDataWithPhotos);
-      
-      toast({
-        title: "Sucesso",
-        description: "Vistoria atualizada com sucesso!",
-      });
-      
-      navigate('/inspections');
+      // Navegação será feita automaticamente se a atualização for bem-sucedida
     } catch (error) {
       console.error('Erro ao atualizar vistoria:', error);
       toast({
