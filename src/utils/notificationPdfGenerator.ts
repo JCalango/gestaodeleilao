@@ -139,7 +139,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         .sender-area {
           width: 100%;
           height: 60mm;
-          margin-top: 30mm;
+          margin-top: 70mm;
           background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%);
           padding: 10mm 20px;
           display: flex;
@@ -180,7 +180,10 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         .sender-info {
           flex: 1;
           text-align: center;
-          padding: 0 10px;
+          padding: 10px 15px;
+          background: white;
+          border-radius: 8px;
+          margin: 0 10px;
         }
         
         .sender-title {
@@ -188,29 +191,27 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           margin: 0;
           font-weight: bold;
           letter-spacing: 1px;
-          color: white;
+          color: #1a1a1a;
         }
         
         .sender-subtitle {
           font-size: 12px;
           margin: 5px 0;
-          opacity: 0.95;
-          color: white;
+          color: #333;
         }
         
         .sender-commission {
           font-size: 12px;
           margin: 0;
           font-weight: bold;
-          color: white;
+          color: #1a1a1a;
         }
         
         .sender-address {
           font-size: 10px;
           margin-top: 10px;
-          opacity: 0.8;
           line-height: 1.4;
-          color: white;
+          color: #333;
         }
         
         .fold-mark {
