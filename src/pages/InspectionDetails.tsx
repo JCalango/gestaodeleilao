@@ -41,7 +41,7 @@ const InspectionDetails: React.FC = () => {
 
   const handleEdit = () => {
     if (id) {
-      navigate(`/inspections/edit/${id}`);
+      navigate(`/edit-vistoria/${id}`);
     }
   };
 
