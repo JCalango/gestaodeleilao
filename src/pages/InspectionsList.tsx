@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Eye, Edit2, Trash2, Filter, Download, Loader2, X } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +71,34 @@ const InspectionsList: React.FC = () => {
     setCityFilter('all');
     setVehicleTypeFilter('all');
     setStateFilter('all');
+  };
+
+  const handleExport = () => {
+    const data = filteredVistorias.map(v => ({
+      'Placa': v.placa || '',
+      'Marca': v.marca || '',
+      'Modelo': v.modelo || '',
+      'Ano Modelo': v.ano_modelo || '',
+      'Cor': v.cor || '',
+      'Tipo Veículo': v.tipo_veiculo || '',
+      'RENAVAM': v.renavam || '',
+      'Proprietário': v.nome_proprietario || '',
+      'CPF/CNPJ': v.cpf_cnpj_proprietario || '',
+      'Município': v.municipio || '',
+      'UF': v.uf || '',
+      'Data Inspeção': v.data_inspecao ? new Date(v.data_inspecao).toLocaleDateString('pt-BR') : '',
+      'Restrição Judicial': v.restricao_judicial ? 'Sim' : 'Não',
+      'Restrição Administrativa': v.restricao_administrativa ? 'Sim' : 'Não',
+      'Furto/Roubo': v.furto_roubo ? 'Sim' : 'Não',
+      'Alienação Fiduciária': v.alienacao_fiduciaria ? 'Sim' : 'Não',
+      'Nº Chassi': v.numero_chassi || '',
+      'Nº Motor': v.numero_motor || '',
+      'Nº Controle': v.numero_controle || '',
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Vistorias');
+    XLSX.writeFile(wb, `vistorias_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const handleDelete = (id: string) => {
@@ -231,7 +260,7 @@ const InspectionsList: React.FC = () => {
                 </div>
               </PopoverContent>
             </Popover>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleExport}>
               <Download className="w-4 h-4 mr-2" />
               Exportar
             </Button>
