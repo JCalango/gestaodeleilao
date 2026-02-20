@@ -214,14 +214,31 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           color: #333;
         }
         
-        .fold-mark {
+        .fold-mark-line {
           position: absolute;
-          top: calc(30mm + 60mm + ((297mm - 30mm - 60mm) / 2));
-          width: 10mm;
-          border-top: 1px dashed #ccc;
+          left: 0;
+          width: 100%;
+          border-top: 1px dashed #999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
         }
-        .fold-mark-left { left: 0; }
-        .fold-mark-right { right: 0; }
+        .fold-mark-1 { top: 53mm; }
+        .fold-mark-2 { top: 180mm; }
+        .fold-label {
+          position: absolute;
+          top: -8px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: white;
+          padding: 0 8px;
+          font-family: 'Inter', Arial, sans-serif;
+          font-size: 9px;
+          color: #999;
+          letter-spacing: 0.5px;
+          white-space: nowrap;
+        }
         
         .recipient-area {
           position: absolute;
@@ -545,8 +562,8 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         </div>
 
         <!-- MARCAS DE DOBRA -->
-        <div class="fold-mark fold-mark-left"></div>
-        <div class="fold-mark fold-mark-right"></div>
+        <div class="fold-mark-line fold-mark-1"><span class="fold-label">Dobrar aqui</span></div>
+        <div class="fold-mark-line fold-mark-2"><span class="fold-label">Dobrar aqui</span></div>
 
         <!-- DESTINATÁRIO (BASE - INVERTIDO 180°) -->
         <div class="recipient-area">
