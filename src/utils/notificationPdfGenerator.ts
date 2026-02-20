@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 const getSystemSettings = async () => {
   try {
     console.log('Fetching system settings from database...');
-    const { data: settings, error } = await supabase
+    const { data: settings, error } = await (supabase as any)
       .from('system_settings')
       .select('*')
       .in('setting_key', ['prefeitura_logo', 'smtran_logo', 'presidente_comissao_leilao', 'notification_text']);

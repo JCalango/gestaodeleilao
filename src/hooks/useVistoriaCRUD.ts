@@ -37,7 +37,7 @@ export function useVistoriaCRUD() {
       setLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vistorias')
         .select('*')
         .order('created_at', { ascending: false });
@@ -74,7 +74,7 @@ export function useVistoriaCRUD() {
         numero_controle: data.numero_controle || `CTRL-${Date.now()}`
       };
 
-      const { data: newVistoria, error } = await supabase
+      const { data: newVistoria, error } = await (supabase as any)
         .from('vistorias')
         .insert(insertData)
         .select()
@@ -120,7 +120,7 @@ export function useVistoriaCRUD() {
         updated_at: new Date().toISOString(),
       };
 
-      const { data: updatedVistoria, error } = await supabase
+      const { data: updatedVistoria, error } = await (supabase as any)
         .from('vistorias')
         .update(updateData)
         .eq('id', id)
@@ -194,7 +194,7 @@ export function useVistoriaCRUD() {
         }
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('vistorias')
         .delete()
         .eq('id', id);

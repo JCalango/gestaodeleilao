@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 const getSystemLogos = async () => {
   try {
     console.log('Fetching system logos from database...');
-    const { data: settings, error } = await supabase
+    const { data: settings, error } = await (supabase as any)
       .from('system_settings')
       .select('*')
       .in('setting_key', ['prefeitura_logo', 'smtran_logo']);
@@ -34,7 +34,7 @@ const getVistoriaPhotos = async (vistoriaId: string) => {
     console.log('Fetching photos for vistoria:', vistoriaId);
     
     // Buscar URLs das fotos na tabela de vistorias
-    const { data: vistoria, error } = await supabase
+    const { data: vistoria, error } = await (supabase as any)
       .from('vistorias')
       .select('fotos_frente, fotos_lateral_esquerda, fotos_lateral_direita, fotos_chassi, fotos_traseira, fotos_motor')
       .eq('id', vistoriaId)
