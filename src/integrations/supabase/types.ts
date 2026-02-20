@@ -14,6 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
+      damage_assessment_items: {
+        Row: {
+          assessment_id: string
+          category_name: string | null
+          created_at: string
+          id: string
+          item_definition_id: string | null
+          item_name: string
+          observations: string | null
+          photo_url: string | null
+          severity: Database["public"]["Enums"]["severity_category"] | null
+          status: Database["public"]["Enums"]["damage_status"]
+        }
+        Insert: {
+          assessment_id: string
+          category_name?: string | null
+          created_at?: string
+          id?: string
+          item_definition_id?: string | null
+          item_name: string
+          observations?: string | null
+          photo_url?: string | null
+          severity?: Database["public"]["Enums"]["severity_category"] | null
+          status?: Database["public"]["Enums"]["damage_status"]
+        }
+        Update: {
+          assessment_id?: string
+          category_name?: string | null
+          created_at?: string
+          id?: string
+          item_definition_id?: string | null
+          item_name?: string
+          observations?: string | null
+          photo_url?: string | null
+          severity?: Database["public"]["Enums"]["severity_category"] | null
+          status?: Database["public"]["Enums"]["damage_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damage_assessment_items_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "vehicle_damage_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_assessment_items_item_definition_id_fkey"
+            columns: ["item_definition_id"]
+            isOneToOne: false
+            referencedRelation: "damage_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      damage_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          vehicle_types: string[]
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          vehicle_types?: string[]
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          vehicle_types?: string[]
+        }
+        Relationships: []
+      }
+      damage_items: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+          requires_photo: boolean
+          severity_levels: string[]
+          vehicle_types: string[]
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          requires_photo?: boolean
+          severity_levels?: string[]
+          vehicle_types?: string[]
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          requires_photo?: boolean
+          severity_levels?: string[]
+          vehicle_types?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "damage_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "damage_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspectors: {
         Row: {
           created_at: string
@@ -310,6 +441,332 @@ export type Database = {
           telefone?: string | null
           updated_at?: string | null
           validade_cnh?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_damage_assessments: {
+        Row: {
+          assessment_date: string | null
+          assessor_name: string | null
+          assessor_registration: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_completed: boolean
+          observations: string | null
+          total_na_count: number
+          total_nao_count: number
+          total_sim_count: number
+          updated_at: string
+          updated_by: string | null
+          vehicle_classification: string | null
+          vehicle_type: string
+          vistoria_id: string | null
+        }
+        Insert: {
+          assessment_date?: string | null
+          assessor_name?: string | null
+          assessor_registration?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_completed?: boolean
+          observations?: string | null
+          total_na_count?: number
+          total_nao_count?: number
+          total_sim_count?: number
+          updated_at?: string
+          updated_by?: string | null
+          vehicle_classification?: string | null
+          vehicle_type: string
+          vistoria_id?: string | null
+        }
+        Update: {
+          assessment_date?: string | null
+          assessor_name?: string | null
+          assessor_registration?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_completed?: boolean
+          observations?: string | null
+          total_na_count?: number
+          total_nao_count?: number
+          total_sim_count?: number
+          updated_at?: string
+          updated_by?: string | null
+          vehicle_classification?: string | null
+          vehicle_type?: string
+          vistoria_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicle_damage_assessments_vistoria_id_fkey"
+            columns: ["vistoria_id"]
+            isOneToOne: false
+            referencedRelation: "vistorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vistorias: {
+        Row: {
+          alienacao_fiduciaria: boolean | null
+          ano_fabricacao: number | null
+          ano_modelo: number | null
+          bairro_financeira: string | null
+          bairro_possuidor: string | null
+          bairro_proprietario: string | null
+          categoria: string | null
+          cep_financeira: string | null
+          cep_possuidor: string | null
+          cep_proprietario: string | null
+          cidade_financeira: string | null
+          cidade_possuidor: string | null
+          cidade_proprietario: string | null
+          cnpj_financeira: string | null
+          complemento_financeira: string | null
+          complemento_proprietario: string | null
+          condicao_chassi: string | null
+          condicao_motor: string | null
+          cor: string | null
+          cpf_cnpj_possuidor: string | null
+          cpf_cnpj_proprietario: string | null
+          created_at: string
+          created_by: string | null
+          dados_remocao: string | null
+          data_entrada_patio: string | null
+          data_inspecao: string | null
+          debito_patio: number | null
+          endereco_financeira: string | null
+          endereco_possuidor: string | null
+          endereco_proprietario: string | null
+          fotos_chassi: string[] | null
+          fotos_frente: string[] | null
+          fotos_lateral_direita: string[] | null
+          fotos_lateral_esquerda: string[] | null
+          fotos_motor: string[] | null
+          fotos_traseira: string[] | null
+          furto_roubo: boolean | null
+          id: string
+          informacoes_complementares_possuidor: string | null
+          informacoes_complementares_proprietario: string | null
+          infracoes_transito: string | null
+          ipva: string | null
+          licenciamento: string | null
+          marca: string | null
+          modelo: string | null
+          motor_alterado: string | null
+          municipio: string | null
+          nome_financeira: string | null
+          nome_possuidor: string | null
+          nome_proprietario: string | null
+          numero_casa_proprietario: string | null
+          numero_chassi: string | null
+          numero_controle: string
+          numero_endereco_financeira: string | null
+          numero_motor: string | null
+          observacoes: string | null
+          placa: string | null
+          possui_comunicacao_venda: boolean | null
+          renavam: string | null
+          restricao_administrativa: boolean | null
+          restricao_judicial: boolean | null
+          tipo_combustivel: string | null
+          tipo_veiculo: string | null
+          uf: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          alienacao_fiduciaria?: boolean | null
+          ano_fabricacao?: number | null
+          ano_modelo?: number | null
+          bairro_financeira?: string | null
+          bairro_possuidor?: string | null
+          bairro_proprietario?: string | null
+          categoria?: string | null
+          cep_financeira?: string | null
+          cep_possuidor?: string | null
+          cep_proprietario?: string | null
+          cidade_financeira?: string | null
+          cidade_possuidor?: string | null
+          cidade_proprietario?: string | null
+          cnpj_financeira?: string | null
+          complemento_financeira?: string | null
+          complemento_proprietario?: string | null
+          condicao_chassi?: string | null
+          condicao_motor?: string | null
+          cor?: string | null
+          cpf_cnpj_possuidor?: string | null
+          cpf_cnpj_proprietario?: string | null
+          created_at?: string
+          created_by?: string | null
+          dados_remocao?: string | null
+          data_entrada_patio?: string | null
+          data_inspecao?: string | null
+          debito_patio?: number | null
+          endereco_financeira?: string | null
+          endereco_possuidor?: string | null
+          endereco_proprietario?: string | null
+          fotos_chassi?: string[] | null
+          fotos_frente?: string[] | null
+          fotos_lateral_direita?: string[] | null
+          fotos_lateral_esquerda?: string[] | null
+          fotos_motor?: string[] | null
+          fotos_traseira?: string[] | null
+          furto_roubo?: boolean | null
+          id?: string
+          informacoes_complementares_possuidor?: string | null
+          informacoes_complementares_proprietario?: string | null
+          infracoes_transito?: string | null
+          ipva?: string | null
+          licenciamento?: string | null
+          marca?: string | null
+          modelo?: string | null
+          motor_alterado?: string | null
+          municipio?: string | null
+          nome_financeira?: string | null
+          nome_possuidor?: string | null
+          nome_proprietario?: string | null
+          numero_casa_proprietario?: string | null
+          numero_chassi?: string | null
+          numero_controle: string
+          numero_endereco_financeira?: string | null
+          numero_motor?: string | null
+          observacoes?: string | null
+          placa?: string | null
+          possui_comunicacao_venda?: boolean | null
+          renavam?: string | null
+          restricao_administrativa?: boolean | null
+          restricao_judicial?: boolean | null
+          tipo_combustivel?: string | null
+          tipo_veiculo?: string | null
+          uf?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          alienacao_fiduciaria?: boolean | null
+          ano_fabricacao?: number | null
+          ano_modelo?: number | null
+          bairro_financeira?: string | null
+          bairro_possuidor?: string | null
+          bairro_proprietario?: string | null
+          categoria?: string | null
+          cep_financeira?: string | null
+          cep_possuidor?: string | null
+          cep_proprietario?: string | null
+          cidade_financeira?: string | null
+          cidade_possuidor?: string | null
+          cidade_proprietario?: string | null
+          cnpj_financeira?: string | null
+          complemento_financeira?: string | null
+          complemento_proprietario?: string | null
+          condicao_chassi?: string | null
+          condicao_motor?: string | null
+          cor?: string | null
+          cpf_cnpj_possuidor?: string | null
+          cpf_cnpj_proprietario?: string | null
+          created_at?: string
+          created_by?: string | null
+          dados_remocao?: string | null
+          data_entrada_patio?: string | null
+          data_inspecao?: string | null
+          debito_patio?: number | null
+          endereco_financeira?: string | null
+          endereco_possuidor?: string | null
+          endereco_proprietario?: string | null
+          fotos_chassi?: string[] | null
+          fotos_frente?: string[] | null
+          fotos_lateral_direita?: string[] | null
+          fotos_lateral_esquerda?: string[] | null
+          fotos_motor?: string[] | null
+          fotos_traseira?: string[] | null
+          furto_roubo?: boolean | null
+          id?: string
+          informacoes_complementares_possuidor?: string | null
+          informacoes_complementares_proprietario?: string | null
+          infracoes_transito?: string | null
+          ipva?: string | null
+          licenciamento?: string | null
+          marca?: string | null
+          modelo?: string | null
+          motor_alterado?: string | null
+          municipio?: string | null
+          nome_financeira?: string | null
+          nome_possuidor?: string | null
+          nome_proprietario?: string | null
+          numero_casa_proprietario?: string | null
+          numero_chassi?: string | null
+          numero_controle?: string
+          numero_endereco_financeira?: string | null
+          numero_motor?: string | null
+          observacoes?: string | null
+          placa?: string | null
+          possui_comunicacao_venda?: boolean | null
+          renavam?: string | null
+          restricao_administrativa?: boolean | null
+          restricao_judicial?: boolean | null
+          tipo_combustivel?: string | null
+          tipo_veiculo?: string | null
+          uf?: string | null
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
