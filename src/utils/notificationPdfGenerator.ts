@@ -224,7 +224,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         
         .recipient-area {
           position: absolute;
-          bottom: 20mm;
+          bottom: 70mm;
           left: 50%;
           transform: translateX(-50%) rotate(180deg);
           width: 120mm;
