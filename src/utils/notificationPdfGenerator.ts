@@ -139,12 +139,14 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         .sender-area {
           width: 100%;
           height: 60mm;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          padding: 10mm;
+          margin-top: 30mm;
+          background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%);
+          padding: 10mm 20px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           color: white;
+          border-radius: 0;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
@@ -182,7 +184,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         }
         
         .sender-title {
-          font-size: 18px;
+          font-size: 16px;
           margin: 0;
           font-weight: bold;
           letter-spacing: 1px;
@@ -192,7 +194,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         .sender-subtitle {
           font-size: 12px;
           margin: 5px 0;
-          opacity: 0.9;
+          opacity: 0.95;
           color: white;
         }
         
@@ -213,7 +215,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         
         .fold-mark {
           position: absolute;
-          top: calc(60mm + 148.5mm / 2 + 30mm);
+          top: calc(30mm + 60mm + ((297mm - 30mm - 60mm) / 2));
           width: 10mm;
           border-top: 1px dashed #ccc;
         }
@@ -227,8 +229,8 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           transform: translateX(-50%) rotate(180deg);
           width: 120mm;
           background: white;
-          border: 2px solid #667eea;
-          border-left: 8px solid #667eea;
+          border: 2px solid #3b82f6;
+          border-left: 8px solid #1e40af;
           border-radius: 12px;
           padding: 20px;
           box-shadow: 0 4px 15px rgba(0,0,0,0.05);
@@ -237,7 +239,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         }
         
         .recipient-label {
-          color: #667eea;
+          color: #1e40af;
           font-size: 11px;
           font-weight: bold;
           text-transform: uppercase;
@@ -424,7 +426,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           }
           
           .sender-area {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%) !important;
           }
           
           .header {
