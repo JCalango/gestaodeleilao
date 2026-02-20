@@ -124,6 +124,139 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           margin: 0 auto;
           padding: 20mm;
           background: white;
+          page-break-after: always;
+        }
+        
+        .page-2 {
+          width: 210mm;
+          height: 297mm;
+          padding: 0;
+          position: relative;
+          overflow: hidden;
+          page-break-after: auto;
+        }
+        
+        .sender-area {
+          width: 100%;
+          height: 60mm;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 10mm;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          color: white;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        .sender-logo-box {
+          background: white;
+          padding: 5px;
+          border-radius: 8px;
+          width: 40mm;
+          height: 35mm;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        
+        .sender-logo-img {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+        
+        .sender-logo-text {
+          font-size: 10px;
+          font-weight: bold;
+          text-align: center;
+          color: #667eea;
+          line-height: 1.2;
+        }
+        
+        .sender-info {
+          flex: 1;
+          text-align: center;
+          padding: 0 10px;
+        }
+        
+        .sender-title {
+          font-size: 18px;
+          margin: 0;
+          font-weight: bold;
+          letter-spacing: 1px;
+          color: white;
+        }
+        
+        .sender-subtitle {
+          font-size: 12px;
+          margin: 5px 0;
+          opacity: 0.9;
+          color: white;
+        }
+        
+        .sender-commission {
+          font-size: 12px;
+          margin: 0;
+          font-weight: bold;
+          color: white;
+        }
+        
+        .sender-address {
+          font-size: 10px;
+          margin-top: 10px;
+          opacity: 0.8;
+          line-height: 1.4;
+          color: white;
+        }
+        
+        .fold-mark {
+          position: absolute;
+          top: calc(60mm + 148.5mm / 2 + 30mm);
+          width: 10mm;
+          border-top: 1px dashed #ccc;
+        }
+        .fold-mark-left { left: 0; }
+        .fold-mark-right { right: 0; }
+        
+        .recipient-area {
+          position: absolute;
+          bottom: 20mm;
+          left: 50%;
+          transform: translateX(-50%) rotate(180deg);
+          width: 120mm;
+          background: white;
+          border: 2px solid #667eea;
+          border-left: 8px solid #667eea;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+        
+        .recipient-label {
+          color: #667eea;
+          font-size: 11px;
+          font-weight: bold;
+          text-transform: uppercase;
+          margin-bottom: 10px;
+          letter-spacing: 1px;
+        }
+        
+        .recipient-name {
+          color: #2d3748;
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+        
+        .recipient-address {
+          color: #4a5568;
+          font-size: 13px;
+          line-height: 1.6;
+          font-family: 'Courier New', monospace;
         }
         
         .header {
@@ -280,10 +413,18 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
             padding: 15mm;
           }
           
+          .page-2 {
+            padding: 0;
+          }
+          
           * {
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          
+          .sender-area {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
           }
           
           .header {
@@ -370,6 +511,47 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
           <div class="signature-line"></div>
           <div class="president-name">${presidenteName}</div>
           <div class="president-title">Presidente da Comissão de Leilão</div>
+        </div>
+      </div>
+
+      <!-- SEGUNDA PÁGINA - VERSO (Padrão Correios) -->
+      <div class="page page-2">
+        <!-- REMETENTE (TOPO) -->
+        <div class="sender-area">
+          <div class="sender-logo-box">
+            ${prefeituraLogo 
+              ? `<img src="${prefeituraLogo}" alt="Prefeitura" class="sender-logo-img" crossorigin="anonymous" />` 
+              : '<div class="sender-logo-text">PREFEITURA<br>GUANAMBI</div>'
+            }
+          </div>
+          <div class="sender-info">
+            <h1 class="sender-title">PREFEITURA MUNICIPAL DE GUANAMBI</h1>
+            <p class="sender-subtitle">SECRETARIA DE PLANEJAMENTO</p>
+            <p class="sender-commission">COMISSÃO DE LEILÃO</p>
+            <div class="sender-address">
+              Praça Henrique Pereira Donato, 90 - Centro<br>
+              CEP: 46.430-000 | Guanambi - Bahia
+            </div>
+          </div>
+          <div class="sender-logo-box">
+            ${smtranLogo 
+              ? `<img src="${smtranLogo}" alt="SMTRAN" class="sender-logo-img" crossorigin="anonymous" />` 
+              : '<div class="sender-logo-text">SMTRAN</div>'
+            }
+          </div>
+        </div>
+
+        <!-- MARCAS DE DOBRA -->
+        <div class="fold-mark fold-mark-left"></div>
+        <div class="fold-mark fold-mark-right"></div>
+
+        <!-- DESTINATÁRIO (BASE - INVERTIDO 180°) -->
+        <div class="recipient-area">
+          <div class="recipient-label">Destinatário</div>
+          <div class="recipient-name">${recipient.name}</div>
+          <div class="recipient-address">
+            ${recipient.address}
+          </div>
         </div>
       </div>
     </body>
