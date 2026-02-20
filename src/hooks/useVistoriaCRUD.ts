@@ -138,7 +138,7 @@ export function useVistoriaCRUD() {
       // Navegar para a lista após sucesso
       setTimeout(() => {
         window.location.href = '/inspections';
-      }, 1000);
+      }, 500);
 
       return updatedVistoria;
     } catch (err) {
