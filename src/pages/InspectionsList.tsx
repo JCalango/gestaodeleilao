@@ -1,12 +1,15 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Eye, Edit2, Trash2, Filter, Download, Loader2 } from 'lucide-react';
+import { Plus, Eye, Edit2, Trash2, Filter, Download, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useVistorias } from '@/contexts/VistoriaContext';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +17,27 @@ const InspectionsList: React.FC = () => {
   const { vistorias, isLoading, deleteVistoria } = useVistorias();
   const [searchQuery, setSearchQuery] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
+  const [restrictionFilter, setRestrictionFilter] = useState('all');
+  const [cityFilter, setCityFilter] = useState('all');
+  const [vehicleTypeFilter, setVehicleTypeFilter] = useState('all');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const navigate = useNavigate();
+
+  const uniqueCities = useMemo(() => {
+    const cities = vistorias
+      .map(v => v.municipio)
+      .filter((c): c is string => !!c);
+    return [...new Set(cities)].sort();
+  }, [vistorias]);
+
+  const uniqueVehicleTypes = useMemo(() => {
+    const types = vistorias
+      .map(v => v.tipo_veiculo)
+      .filter((t): t is string => !!t);
+    return [...new Set(types)].sort();
+  }, [vistorias]);
+
+  const activeFilterCount = [restrictionFilter, cityFilter, vehicleTypeFilter].filter(f => f !== 'all').length;
 
   const filteredVistorias = vistorias.filter(vistoria => {
     const matchesSearch = searchQuery === '' || 
@@ -24,9 +47,30 @@ const InspectionsList: React.FC = () => {
       (vistoria.nome_proprietario && vistoria.nome_proprietario.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesState = stateFilter === 'all' || vistoria.uf === stateFilter;
+
+    const matchesRestriction = (() => {
+      if (restrictionFilter === 'all') return true;
+      const hasAny = vistoria.restricao_judicial || vistoria.restricao_administrativa || vistoria.furto_roubo;
+      if (restrictionFilter === 'com') return hasAny;
+      if (restrictionFilter === 'sem') return !hasAny;
+      if (restrictionFilter === 'judicial') return vistoria.restricao_judicial;
+      if (restrictionFilter === 'administrativa') return vistoria.restricao_administrativa;
+      if (restrictionFilter === 'furto') return vistoria.furto_roubo;
+      return true;
+    })();
+
+    const matchesCity = cityFilter === 'all' || vistoria.municipio === cityFilter;
+    const matchesVehicleType = vehicleTypeFilter === 'all' || vistoria.tipo_veiculo === vehicleTypeFilter;
     
-    return matchesSearch && matchesState;
+    return matchesSearch && matchesState && matchesRestriction && matchesCity && matchesVehicleType;
   });
+
+  const clearFilters = () => {
+    setRestrictionFilter('all');
+    setCityFilter('all');
+    setVehicleTypeFilter('all');
+    setStateFilter('all');
+  };
 
   const handleDelete = (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta vistoria?')) {
@@ -89,11 +133,79 @@ const InspectionsList: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Filtros
-            </Button>
-            
+            <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="relative">
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filtros
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-2 -right-2 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 bg-background border z-50" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm text-foreground">Filtros avançados</h4>
+                    {activeFilterCount > 0 && (
+                      <Button variant="ghost" size="sm" onClick={clearFilters} className="h-auto py-1 px-2 text-xs text-muted-foreground">
+                        <X className="w-3 h-3 mr-1" />
+                        Limpar
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Restrições</Label>
+                    <Select value={restrictionFilter} onValueChange={setRestrictionFilter}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Todas" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="com">Com restrições</SelectItem>
+                        <SelectItem value="sem">Sem restrições</SelectItem>
+                        <SelectItem value="judicial">Judicial</SelectItem>
+                        <SelectItem value="administrativa">Administrativa</SelectItem>
+                        <SelectItem value="furto">Furto/Roubo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Localização (Município)</Label>
+                    <Select value={cityFilter} onValueChange={setCityFilter}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Todos" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        <SelectItem value="all">Todos</SelectItem>
+                        {uniqueCities.map(city => (
+                          <SelectItem key={city} value={city}>{city}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground">Tipo de Veículo</Label>
+                    <Select value={vehicleTypeFilter} onValueChange={setVehicleTypeFilter}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Todos" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background z-50">
+                        <SelectItem value="all">Todos</SelectItem>
+                        {uniqueVehicleTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button variant="outline">
               <Download className="w-4 h-4 mr-2" />
               Exportar
