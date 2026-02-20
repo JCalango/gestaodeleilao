@@ -139,7 +139,7 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         .sender-area {
           width: 100%;
           height: 60mm;
-          margin-top: 70mm;
+          margin-top: 91mm;
           background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%);
           padding: 10mm 20px;
           display: flex;
