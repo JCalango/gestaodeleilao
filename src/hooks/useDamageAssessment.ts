@@ -370,13 +370,13 @@ export const useCreateAssessmentItem = () => {
       items: DamageAssessmentItemFormData[] 
     }): Promise<void> => {
       // First, delete existing items for this assessment
-      await supabase
+      await (supabase as any)
         .from('damage_assessment_items')
         .delete()
         .eq('assessment_id', assessmentId);
 
       // Then insert new items
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('damage_assessment_items')
         .insert(
           items.map(item => ({

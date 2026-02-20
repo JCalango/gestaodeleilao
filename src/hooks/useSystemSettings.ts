@@ -17,7 +17,7 @@ export const useSystemSettings = () => {
   const { data: settings = [], isLoading } = useQuery({
     queryKey: ['system-settings'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('system_settings')
         .select('*')
         .order('setting_key');
@@ -29,7 +29,7 @@ export const useSystemSettings = () => {
 
   const updateSettingMutation = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: string | null }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('system_settings')
         .upsert({ 
           setting_key: key, 
@@ -85,7 +85,7 @@ export const useSystemSettings = () => {
       // Update system settings with the new logo URL
       const settingKey = type === 'prefeitura' ? 'prefeitura_logo' : 'smtran_logo';
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('system_settings')
         .upsert({ 
           setting_key: settingKey, 

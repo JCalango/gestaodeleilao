@@ -23,7 +23,7 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
   const fetchVistorias = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vistorias')
         .select('*')
         .order('created_at', { ascending: false });
@@ -81,7 +81,7 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       console.log('Inserting vistoria data:', dataToInsert);
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vistorias')
         .insert([dataToInsert])
         .select()
@@ -147,7 +147,7 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       console.log('Updating vistoria data:', dataToUpdate);
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('vistorias')
         .update(dataToUpdate)
         .eq('id', id)
@@ -227,7 +227,7 @@ export const VistoriaProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
 
       // Agora deletar o registro da vistoria
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('vistorias')
         .delete()
         .eq('id', id);

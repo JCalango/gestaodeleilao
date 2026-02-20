@@ -29,7 +29,7 @@ export const useActiveUsers = () => {
       setIsLoading(true);
 
       // Buscar todos os perfis de usuários
-      const { data: profiles, error: profilesError } = await supabase
+      const { data: profiles, error: profilesError } = await (supabase as any)
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
@@ -48,7 +48,7 @@ export const useActiveUsers = () => {
       const twentyFourHoursAgo = new Date();
       twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
-      const { data: activities, error: activitiesError } = await supabase
+      const { data: activities, error: activitiesError } = await (supabase as any)
         .from('user_activities')
         .select('user_id, activity_type, created_at')
         .gte('created_at', twentyFourHoursAgo.toISOString())
