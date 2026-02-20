@@ -11,15 +11,19 @@ interface RestrictionStatsCardProps {
 
 const RestrictionStatsCard: React.FC<RestrictionStatsCardProps> = ({ vistorias }) => {
   const semRestricoes = vistorias.filter(v => 
-    !v.restricao_judicial && !v.restricao_administrativa && !v.furto_roubo
+    !v.restricao_judicial && !v.restricao_administrativa && !v.furto_roubo && !v.alienacao_fiduciaria
   ).length;
 
   const restricaoAdministrativa = vistorias.filter(v => 
-    v.restricao_administrativa && !v.restricao_judicial && !v.furto_roubo
+    v.restricao_administrativa
   ).length;
 
   const restricaoJudicial = vistorias.filter(v => 
-    v.restricao_judicial || v.furto_roubo
+    v.restricao_judicial
+  ).length;
+
+  const furtoRoubo = vistorias.filter(v => 
+    v.furto_roubo
   ).length;
 
   return (
@@ -56,6 +60,16 @@ const RestrictionStatsCard: React.FC<RestrictionStatsCardProps> = ({ vistorias }
           </div>
           <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
             {restricaoJudicial}
+          </Badge>
+        </div>
+
+        <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-orange-600" />
+            <span className="text-sm font-medium text-orange-900">Furto/Roubo</span>
+          </div>
+          <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
+            {furtoRoubo}
           </Badge>
         </div>
       </CardContent>
