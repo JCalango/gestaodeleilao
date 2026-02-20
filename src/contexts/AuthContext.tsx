@@ -40,16 +40,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, userEmail?: string) => {
     try {
       const { data, error } = await (supabase as any)
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
+        return;
+      }
+
+      if (!data && userEmail) {
+        // Auto-create profile if missing
+        const { data: newProfile, error: insertError } = await (supabase as any)
+          .from('profiles')
+          .insert({
+            id: userId,
+            full_name: userEmail.split('@')[0],
+            email: userEmail,
+            role: 'member'
+          })
+          .select()
+          .single();
+
+        if (!insertError && newProfile) {
+          setProfile(newProfile);
+          return;
+        }
+        console.error('Error creating profile:', insertError);
         return;
       }
 
@@ -82,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session?.user) {
           // Defer profile fetching to prevent deadlocks
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchProfile(session.user.id, session.user.email);
           }, 0);
 
           // Log login activity
@@ -104,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id, session.user.email);
       }
       setLoading(false);
     });
