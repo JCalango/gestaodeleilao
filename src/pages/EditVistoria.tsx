@@ -165,7 +165,7 @@ const EditVistoria: React.FC = () => {
       });
 
       await updateVistoria(id, formDataWithPhotos);
-      // Navegação será feita automaticamente se a atualização for bem-sucedida
+      navigate('/inspections');
     } catch (error) {
       console.error('Erro ao atualizar vistoria:', error);
       toast({
