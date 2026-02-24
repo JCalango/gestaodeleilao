@@ -26,10 +26,10 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <VistoriaProvider>
-          <Toaster />
-          <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
+          <VistoriaProvider>
+            <Toaster />
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/*" element={
@@ -52,9 +52,9 @@ function App() {
                 </AuthGuard>
               } />
             </Routes>
-          </BrowserRouter>
-        </VistoriaProvider>
-      </AuthProvider>
+          </VistoriaProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
