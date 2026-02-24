@@ -499,7 +499,9 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
 
         <!-- Addressee -->
         <div class="addressee">
-          <strong>De:</strong> Prefeitura Municipal de Guanambi, Bahia<br>
+          <strong>Prefeitura Municipal de Guanambi - Bahia</strong><br>
+          <strong>Secretaria de Planejamento</strong><br>
+          <strong>Comissão de Leilão</strong><br><br>
           <strong>Para:</strong> ${recipient.name}<br>
           <div style="margin-top: 10px; font-size: 11px; color: #666;">
             ${recipient.address}
