@@ -66,65 +66,89 @@ const PhotoUploadSection: React.FC<PhotoUploadSectionProps> = ({
     }
   }, [initialPhotos, photos, setPhotos]);
 
+  const [isOpen, setIsOpen] = useState(false);
+
+  const totalPhotos = Object.values(photos).reduce((acc, arr) => acc + (arr?.length || 0), 0);
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Camera className="w-5 h-5" />
-          Fotos do Veículo
-        </CardTitle>
-        <CardDescription>
-          Adicione fotos do veículo para documentar a vistoria. Formatos aceitos: JPEG, PNG, WebP (máx. 10MB cada)
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {photoSections.map((section) => (
-          <div key={section.key} className="space-y-3">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-sm font-medium">{section.label}</Label>
-                <p className="text-xs text-slate-600">{section.description}</p>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="w-5 h-5" />
+                  Fotos do Veículo
+                  {totalPhotos > 0 && (
+                    <span className="text-xs font-normal bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      {totalPhotos} foto{totalPhotos !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Adicione fotos do veículo para documentar a vistoria. Formatos aceitos: JPEG, PNG, WebP (máx. 10MB cada)
+                </CardDescription>
               </div>
-              {photos[section.key] && photos[section.key].length > 0 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => clearAllPhotos(section.key)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <RotateCcw className="w-4 h-4 mr-1" />
-                  Limpar Todas
-                </Button>
+              {isOpen ? (
+                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
               )}
             </div>
-            
-            <PhotoUploadControls
-              sectionKey={section.key}
-              isUploading={uploading[section.key] || false}
-              uploadProgress={uploadProgress[section.key] || 0}
-              onFileUpload={(files) => handleFileUpload(files, section.key)}
-            />
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="space-y-6">
+            {photoSections.map((section) => (
+              <div key={section.key} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium">{section.label}</Label>
+                    <p className="text-xs text-muted-foreground">{section.description}</p>
+                  </div>
+                  {photos[section.key] && photos[section.key].length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => clearAllPhotos(section.key)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <RotateCcw className="w-4 h-4 mr-1" />
+                      Limpar Todas
+                    </Button>
+                  )}
+                </div>
+                
+                <PhotoUploadControls
+                  sectionKey={section.key}
+                  isUploading={uploading[section.key] || false}
+                  uploadProgress={uploadProgress[section.key] || 0}
+                  onFileUpload={(files) => handleFileUpload(files, section.key)}
+                />
 
-            {uploadErrors[section.key] && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  {uploadErrors[section.key]}
-                </AlertDescription>
-              </Alert>
-            )}
+                {uploadErrors[section.key] && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {uploadErrors[section.key]}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-            <PhotoGrid
-              photos={photos[section.key] || []}
-              sectionLabel={section.label}
-              onReplacePhoto={(index) => replacePhoto(section.key, index)}
-              onRemovePhoto={(index) => removePhoto(section.key, index)}
-            />
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+                <PhotoGrid
+                  photos={photos[section.key] || []}
+                  sectionLabel={section.label}
+                  onReplacePhoto={(index) => replacePhoto(section.key, index)}
+                  onRemovePhoto={(index) => removePhoto(section.key, index)}
+                />
+              </div>
+            ))}
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 };
 
