@@ -498,10 +498,12 @@ export const generateNotificationPDF = async (vistoria: Vistoria, recipientType:
         </div>
 
         <!-- Addressee -->
-        <div class="addressee" style="line-height: 1.0;">
-          <strong>Prefeitura Municipal de Guanambi - Bahia</strong><br>
-          <strong>Secretaria de Planejamento</strong><br>
-          <strong>Comissão de Leilão</strong><br><br>
+        <div class="addressee">
+          <div style="line-height: 0.8; margin-bottom: 8px;">
+            <strong>Prefeitura Municipal de Guanambi - Bahia</strong><br>
+            <strong>Secretaria de Planejamento</strong><br>
+            <strong>Comissão de Leilão</strong>
+          </div>
           <strong>Para:</strong> ${recipient.name}<br>
           <div style="margin-top: 10px; font-size: 11px; color: #666;">
             ${recipient.address}
