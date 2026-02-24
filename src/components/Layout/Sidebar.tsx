@@ -18,7 +18,7 @@ import {
   Settings,
   Users,
   LogOut,
-  Bell,
+  Mail,
   Database,
 } from "lucide-react";
 
@@ -43,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const menuItems = [
     { icon: BarChart3, label: "Dashboard", path: "/" },
     { icon: FileText, label: "Vistorias", path: "/inspections" },
-    { icon: Bell, label: "Notificações", path: "/notifications" },
+    { icon: Mail, label: "Notificações", path: "/notifications" },
     { icon: FileText, label: "Config. Notificações", path: "/notification-settings" },
     { icon: Database, label: "Dados do Usuário", path: "/user-data-example" },
     { icon: Settings, label: "Configurações", path: "/settings" },
