@@ -1,10 +1,11 @@
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Camera, RotateCcw, AlertCircle } from 'lucide-react';
+import { Camera, RotateCcw, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 import PhotoUploadControls from './PhotoUploadControls';
 import PhotoGrid from './PhotoGrid';
