@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +10,14 @@ import { Car, AlertCircle } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const AuthPage: React.FC = () => {
-  const { signIn, loading } = useAuth();
+  const { signIn, loading, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Redirect to home if already authenticated
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
