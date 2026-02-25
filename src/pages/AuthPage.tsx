@@ -44,7 +44,7 @@ const AuthPage: React.FC = () => {
     } else {
       toast({
         title: "Login realizado com sucesso!",
-        description: "Bem-vindo ao AuctionPro.",
+        description: "Bem-vindo ao Leilões SMTRAN.",
       });
     }
   };
@@ -57,7 +57,7 @@ const AuthPage: React.FC = () => {
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
               <Car className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">AuctionPro</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Leilões SMTRAN</h1>
           </div>
           <p className="text-slate-600">Sistema de Gestão de Leilões</p>
         </div>
