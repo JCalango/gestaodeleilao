@@ -12,7 +12,7 @@ interface AuthGuardProps {
 const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin = false }) => {
   const { user, profile, loading } = useAuth();
 
-  if (loading) {
+  if (loading || (user && !profile)) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-96 space-y-4">
@@ -24,7 +24,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requireAdmin = false })
     );
   }
 
-  if (!user || !profile) {
+  if (!user) {
     return <AuthPage />;
   }
 
