@@ -57,7 +57,7 @@ const DamageAssessmentForm: React.FC<DamageAssessmentFormProps> = ({
     },
   });
 
-  const handleItemChange = (itemId: string, field: keyof DamageAssessmentItemFormData, value: any) => {
+  const handleItemChange = (itemId: string, field: keyof DamageAssessmentItemFormData, value: string | boolean) => {
     setAssessmentItems(prev => ({
       ...prev,
       [itemId]: {
